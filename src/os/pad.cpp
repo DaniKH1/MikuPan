@@ -1,10 +1,6 @@
 #include "common.h"
 #include "typedefs.h"
-
-#define INCLUDING_FROM_PAD_C
 #include "pad.h"
-#undef INCLUDING_FROM_PAD_C
-
 #include "sce/libpad.h"
 #include "sce/misc/diei.h"
 #include "main/glob.h"

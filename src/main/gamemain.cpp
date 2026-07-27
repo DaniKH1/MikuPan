@@ -178,7 +178,7 @@ int GameInitLoad()
         sys_wrk.load_mode = INGAME_INIT_LOAD_EFCT;
     case INGAME_INIT_LOAD_EFCT:
 #ifdef BUILD_EU_VERSION
-        init_load_id = LoadReqLanguage(FNT001_E_PK2, 0x1e30000);
+        init_load_id = LoadReqLanguage(FNT001_E_PK2, FontTextAddress);
 #else
         init_load_id = LoadReq(FNT001_PK2, FontTextAddress);
 #endif

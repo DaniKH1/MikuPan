@@ -210,9 +210,7 @@ void InitGameFirst()
 
 void CallSoftReset()
 {
-    int lcount;
-
-    lcount = 0;
+    int lcount = 0;
 
     SeStopAll();
     InitSe();

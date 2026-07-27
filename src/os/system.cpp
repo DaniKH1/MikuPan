@@ -67,8 +67,8 @@ void EndSystem()
 static void InitIop()
 {
     sceSifInitRpc(0);
-    sceCdInit(0);
-    sceCdMmode(2);
+    sceCdInit(SCECdINIT);
+    sceCdMmode(SCECdDVD);
 }
 
 static void LoadDefModule()
@@ -132,7 +132,7 @@ void InitGraphics()
     env.notify = 4;
     
     sceDmaPutEnv(&env);
-    sceGsSetDefDBuff(&g_db, 0, 0x280, 0xe0, 2, 0x31, 1);
+    sceGsSetDefDBuff(&g_db, 0, 640, 224, 2, 49, 1);
     
     pdrawenv = &g_db.draw0;
     
@@ -220,12 +220,12 @@ void vfunc()
     if (sys_wrk.count & 1)
     {
         pdrawenv = &g_db.draw1;
-        sceGsSetHalfOffset(&g_db.draw0, 0x800, 0x800, (odev & 0xffffU) + 1 & 1);
+        sceGsSetHalfOffset(&g_db.draw0, 2048, 2048, (odev & 0xffffU) + 1 & 1);
     }
     else
     {
         pdrawenv = &g_db.draw0;
-        sceGsSetHalfOffset(&g_db.draw1, 0x800, 0x800, (odev & 0xffffU) + 1 & 1);
+        sceGsSetHalfOffset(&g_db.draw1, 2048, 2048, (odev & 0xffffU) + 1 & 1);
     }
     
     sys_wrk.count++;
