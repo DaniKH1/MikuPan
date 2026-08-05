@@ -3028,6 +3028,7 @@ void PlyrActionChk()
 void PlyrNModeMoveCtrl()
 {
     sceVu0FVECTOR tv;
+    sceVu0FVECTOR requested_move;
     MOVE_BOX *mb;
 
     if (plyr_wrk.cond != 1)
@@ -3050,6 +3051,11 @@ void PlyrNModeMoveCtrl()
             PlyrMovePad(mb, tv);
         }
 
+        requested_move[0] = tv[0];
+        requested_move[1] = tv[1];
+        requested_move[2] = tv[2];
+        requested_move[3] = tv[3];
+
         if (PlyrMoveHitChk(mb, tv, 0))
         {
             if (MikuPan_PlayerMomentumSlideEnabled() == 0)
@@ -3062,7 +3068,7 @@ void PlyrNModeMoveCtrl()
 
         if (dbg_wrk.high_speed_mode == 0)
         {
-            PlyrSpecialMoveChk(tv);
+            PlyrSpecialMoveChk(requested_move);
         }
     }
 }
@@ -3209,14 +3215,83 @@ u_char PlyrSpecialMoveChk2(sceVu0FVECTOR mv)
     return 0;
 }
 
+static int PlyrMoveMotionOwnsMovement(u_char move_mot)
+{
+    return (move_mot >= 1 && move_mot <= 9) ||
+           move_mot == 12 || move_mot == 13;
+}
+
+static u_char PlyrProbeMoveMotion(sceVu0FVECTOR movement, float max_distance,
+                                  sceVu0FVECTOR hit_point)
+{
+    sceVu0FVECTOR point;
+    float direction_x;
+    float direction_z;
+    float distance;
+    float length;
+
+    direction_x = movement[0];
+    direction_z = movement[2];
+    length = GetDist(direction_x, direction_z);
+
+    if (length <= 0.001f)
+    {
+        direction_x = SgSinf(plyr_wrk.move_box.rot[1]);
+        direction_z = SgCosf(plyr_wrk.move_box.rot[1]);
+    }
+    else
+    {
+        direction_x /= length;
+        direction_z /= length;
+    }
+
+    for (distance = 0.0f; distance <= max_distance; distance += 10.0f)
+    {
+        u_char move_mot;
+
+        point[0] = plyr_wrk.move_box.pos[0] + direction_x * distance;
+        point[1] = plyr_wrk.move_box.pos[1];
+        point[2] = plyr_wrk.move_box.pos[2] + direction_z * distance;
+        point[3] = 0.0f;
+
+        move_mot = GetPointMoveMotion(point, plyr_wrk.pr_info.room_no);
+
+        if (move_mot != 0 && move_mot != 0xff)
+        {
+            hit_point[0] = point[0];
+            hit_point[1] = point[1];
+            hit_point[2] = point[2];
+            hit_point[3] = point[3];
+            return move_mot;
+        }
+    }
+
+    return 0xff;
+}
+
+static void PlyrCancelMoveTurnAssist()
+{
+    if ((plyr_wrk.mvsta & 0x3000000) == 0)
+    {
+        return;
+    }
+
+    plyr_wrk.move_box.rspd[1] = 0.0f;
+    plyr_wrk.move_box.loop = 0;
+    plyr_wrk.mvsta &= ~0x3000000;
+}
+
 void PlyrSpecialMoveChk(sceVu0FVECTOR mv)
 {
     sceVu0FVECTOR tv;
     sceVu0FVECTOR cv;
     sceVu0FVECTOR rv;
+    sceVu0FVECTOR probed_point;
     float rot;
     float adj;
     u_char move_mot;
+    u_char move_mot_from_probe;
+    u_char move_mot_without_approach;
     u_char up;
     float lstep_adju;
     float sstep_adju;
@@ -3243,8 +3318,25 @@ void PlyrSpecialMoveChk(sceVu0FVECTOR mv)
     if (plyr_wrk.mvsta & 0xf)
     {
         move_mot = plyr_wrk.move_mot;
+        move_mot_from_probe = 0;
+        move_mot_without_approach = 0;
 
-        if (move_mot == 0)
+        if (plyr_wrk.pr_info.room_no == R006_HAKONIWA &&
+            (move_mot == 0 || move_mot == 0xff))
+        {
+            const u_char current_move_mot = move_mot;
+            const u_char probed_move_mot = PlyrProbeMoveMotion(
+                mv, 180.0f, probed_point);
+
+            if (probed_move_mot >= 1 && probed_move_mot <= 8)
+            {
+                move_mot = probed_move_mot;
+                move_mot_from_probe = 1;
+                move_mot_without_approach = current_move_mot == 0xff;
+            }
+        }
+
+        if (move_mot == 0 && move_mot_from_probe == 0)
         {
             tv[0] = 0.0f;
             tv[1] = 0.0f;
@@ -3254,12 +3346,19 @@ void PlyrSpecialMoveChk(sceVu0FVECTOR mv)
             RotFvector(plyr_wrk.move_box.rot, tv);
             sceVu0AddVector(tv, plyr_wrk.move_box.pos, tv);
 
-            move_mot = GetPointMoveMotion(tv,plyr_wrk.pr_info.room_no);
+            move_mot = GetPointMoveMotion(tv, plyr_wrk.pr_info.room_no);
 
             if (move_mot == 12 || move_mot == 13)
             {
                 move_mot = plyr_wrk.move_mot;
             }
+        }
+
+        if (plyr_wrk.pr_info.room_no == R006_HAKONIWA &&
+            move_mot_from_probe != 0 &&
+            move_mot >= 1 && move_mot <= 8)
+        {
+            PlyrCancelMoveTurnAssist();
         }
 
         switch(move_mot)
@@ -3334,27 +3433,45 @@ void PlyrSpecialMoveChk(sceVu0FVECTOR mv)
 
                 RotLimitChk(&plyr_wrk.move_box.rot[1]);
 
-                if (plyr_wrk.move_mot != 0)
+                if (plyr_wrk.move_mot != 0 && move_mot_from_probe == 0)
                 {
                     return;
                 }
 
-                for (adj = 1.0f;;)
+                if (move_mot_without_approach != 0)
                 {
-                    tv[0] = 0.0f;
-                    tv[1] = 0.0f;
-                    tv[2] = adj;
-                    tv[3] = 0.0f;
-
-                    RotFvector(plyr_wrk.move_box.rot, tv);
-                    sceVu0AddVector(tv, plyr_wrk.move_box.pos, tv);
-
-                    if (GetPointMoveMotion(tv, plyr_wrk.pr_info.room_no) != 0)
+                    tv[0] = probed_point[0];
+                    tv[1] = probed_point[1];
+                    tv[2] = probed_point[2];
+                    tv[3] = probed_point[3];
+                }
+                else
+                {
+                    for (adj = 1.0f; adj <= 400.0f; adj += 1.0f)
                     {
-                        break;
+                        u_char entry_mot;
+
+                        tv[0] = 0.0f;
+                        tv[1] = 0.0f;
+                        tv[2] = adj;
+                        tv[3] = 0.0f;
+
+                        RotFvector(plyr_wrk.move_box.rot, tv);
+                        sceVu0AddVector(tv, plyr_wrk.move_box.pos, tv);
+
+                        entry_mot = GetPointMoveMotion(
+                            tv, plyr_wrk.pr_info.room_no);
+
+                        if (entry_mot != 0 && entry_mot != 0xff)
+                        {
+                            break;
+                        }
                     }
 
-                    adj += 1.0f;
+                    if (adj > 400.0f)
+                    {
+                        return;
+                    }
                 }
 
                 if (up)
@@ -3463,27 +3580,45 @@ void PlyrSpecialMoveChk(sceVu0FVECTOR mv)
                 plyr_wrk.move_box.rot[1] = step_direction * PI / 2;
                 RotLimitChk(plyr_wrk.move_box.rot + 1);
 
-                if (plyr_wrk.move_mot != 0)
+                if (plyr_wrk.move_mot != 0 && move_mot_from_probe == 0)
                 {
                     return;
                 }
 
-                for (adj = 1.0f;;)
+                if (move_mot_without_approach != 0)
                 {
-                    tv[0] = 0.0f;
-                    tv[1] = 0.0f;
-                    tv[2] = adj;
-                    tv[3] = 0.0f;
-
-                    RotFvector(plyr_wrk.move_box.rot,tv);
-                    sceVu0AddVector(tv, plyr_wrk.move_box.pos, tv);
-
-                    if (GetPointMoveMotion(tv,plyr_wrk.pr_info.room_no) != 0)
+                    tv[0] = probed_point[0];
+                    tv[1] = probed_point[1];
+                    tv[2] = probed_point[2];
+                    tv[3] = probed_point[3];
+                }
+                else
+                {
+                    for (adj = 1.0f; adj <= 400.0f; adj += 1.0f)
                     {
-                        break;
+                        u_char entry_mot;
+
+                        tv[0] = 0.0f;
+                        tv[1] = 0.0f;
+                        tv[2] = adj;
+                        tv[3] = 0.0f;
+
+                        RotFvector(plyr_wrk.move_box.rot, tv);
+                        sceVu0AddVector(tv, plyr_wrk.move_box.pos, tv);
+
+                        entry_mot = GetPointMoveMotion(
+                            tv, plyr_wrk.pr_info.room_no);
+
+                        if (entry_mot != 0 && entry_mot != 0xff)
+                        {
+                            break;
+                        }
                     }
 
-                    adj += 1.0f;
+                    if (adj > 400.0f)
+                    {
+                        return;
+                    }
                 }
 
                 if (up)
@@ -4617,7 +4752,9 @@ u_char PlyrMoveHitChk(MOVE_BOX *mb, sceVu0FVECTOR tv, u_char id)
         result = PlyrMapHitCheck(tv, mb->pos, div, plyr_wrk.pr_info.room_no);
         adjusted_dist = GetDist(tv[0], tv[2]);
 
-        if (id == 0 && result != 0 && adjusted_dist <= dist * plyr_collision_null_scale)
+        if (id == 0 && result != 0 &&
+            adjusted_dist <= dist * plyr_collision_null_scale &&
+            PlyrMoveMotionOwnsMovement(plyr_wrk.move_mot) == 0)
         {
             momentum_used = PlyrCollisionTryMomentumSlide(mb, tv, desired, dist,
                                                           plyr_wrk.pr_info.room_no);
@@ -4635,7 +4772,11 @@ u_char PlyrMoveHitChk(MOVE_BOX *mb, sceVu0FVECTOR tv, u_char id)
         PlyrCollisionLog(mb, id, plyr_wrk.pr_info.room_no, source, result,
                          null_move, momentum_used, desired, tv, div);
 
-        if (adjusted_dist > plyr_collision_min_move)
+        if (PlyrMoveMotionOwnsMovement(plyr_wrk.move_mot) != 0)
+        {
+            PlyrCollisionClearMomentum();
+        }
+        else if (adjusted_dist > plyr_collision_min_move)
         {
             PlyrCollisionStoreMomentum(tv);
         }
