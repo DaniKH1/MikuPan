@@ -1253,6 +1253,7 @@ void StarPuzzleDataSet(int pzl_no)
 int StarPuzzleMain(int pzl_no)
 {
     int i; int j; int tmp0;
+    MikuPan_StarPuzzleMouseInput();
     u_char stone_odr[5] = {0, 1, 3, 4, 2};
 
     switch(star_pzl_wrk.mode)
@@ -2713,6 +2714,7 @@ void DialKeyDoorDataSet(int door_no)
 int DialKeyDoorMain()
 {
     int i;
+    MikuPan_DialKeyDoorMouseInput();
 
     switch(dkey_wrk.mode)
     {
@@ -3112,10 +3114,11 @@ void DialKeyDoorDisp()
         SimpleDispSprt(&spev01_sp_bak[i], MikuPan_GetHostAddress(EVENT_ADDRESS), i, NULL, NULL, alp_rate);
     }
 
-    sscl.cx = spev01_sp_btp[dkey_wrk.slct_no].x + spev01_sp_btp[i].w + 24;
-    sscl.cy = spev01_sp_btp[dkey_wrk.slct_no].y + spev01_sp_btp[i].h + 20;
+    const int selected_physical = MikuPan_DialKeyPhysicalIndex(dkey_wrk.slct_no);
+    sscl.cx = spev01_sp_btp[selected_physical].x + spev01_sp_btp[selected_physical].w / 2;
+    sscl.cy = spev01_sp_btp[selected_physical].y + spev01_sp_btp[selected_physical].h / 2;
 
-    SimpleDispSprtDatCopy(spev01_sp_btf + dkey_wrk.slct_no, &ssd);
+    SimpleDispSprtDatCopy(spev01_sp_btf + selected_physical, &ssd);
 
     ssd.alp = spev_wrk.csr[2];
 
@@ -3123,7 +3126,7 @@ void DialKeyDoorDisp()
 
     for (i = 0; i < 10; i++)
     {
-        if (dkey_wrk.slct_no == i && dkey_wrk.mode == DIAL_KEY_MODE_PUSH)
+        if (selected_physical == i && dkey_wrk.mode == DIAL_KEY_MODE_PUSH)
         {
             SimpleDispSprt(&spev01_sp_btp[i], MikuPan_GetHostAddress(EVENT_ADDRESS), 17, NULL, NULL, alp_rate);
         }
@@ -3738,6 +3741,7 @@ void DollPzlInit()
 void DollPzlMain()
 {
     int no;
+    MikuPan_DollPuzzleMouseInput();
     int i;
     static int blink_dir = 1;
 
@@ -4761,6 +4765,7 @@ void ButsuzoPzlInit()
 void ButsuzoPzlMain()
 {
     int i;
+    MikuPan_ButsuzoPuzzleMouseInput();
     static int t_counter = 0;
 
     switch(spev_wrk.mode)
@@ -4886,10 +4891,10 @@ void ButsuzoPzlMain()
                     break;
                 }
 
-                if (i == 6) // bug ??? should have been outside the loop ???
-                {
-                    spev_wrk.mode = 5;
-                }
+            }
+            if (i == 6)
+            {
+                spev_wrk.mode = 5;
             }
             SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 0);
         }
@@ -5954,6 +5959,7 @@ void LightsOutInit()
 void LightsOutMain()
 {
     int no;
+    MikuPan_LightsOutMouseInput();
     int i;
 
     no = spev_wrk.count;

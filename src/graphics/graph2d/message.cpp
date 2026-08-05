@@ -1,9 +1,11 @@
 #include "common.h"
 #include "typedefs.h"
+#include "enums.h"
 #include "message.h"
 
 #include "tim2_new.h"
 #include "mikupan/mikupan_memory.h"
+#include "mikupan/io/mikupan_controller.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -17,6 +19,7 @@
 #include "ingame/plyr/plyr_ctl.h"
 #include "main/glob.h"
 #include "mc/mc_main.h"
+#include "os/eeiop/eese.h"
 #include "mikupan/gs/mikupan_gs_c.h"
 #include "mikupan/gs/mikupan_texture_manager_c.h"
 #include "mikupan/rendering/mikupan_renderer.h"
@@ -66,8 +69,54 @@ static void SetUnderLine(int sw, int pri, int x, int y, int fw, u_char r, u_char
 #endif
 static void PacketEnd();
 static void MesKeyCheck();
+static void MikuPan_MessageChoiceMouseInput(int *cursor, int count,
+                                              const int *x, const int *y,
+                                              const int *width);
 
 #define PI 3.1415927f
+
+
+static void MikuPan_MessageChoiceMouseInput(int *cursor, int count,
+                                              const int *x, const int *y,
+                                              const int *width)
+{
+    if (cursor == NULL || count <= 0 || x == NULL || y == NULL || width == NULL)
+    {
+        return;
+    }
+
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+
+    for (int i = 0; i < count; i++)
+    {
+        const float hit_width = width[i] > 16 ? (float)width[i] : 16.0f;
+        if (!MikuPan_LegacyMouseHit((float)x[i], (float)y[i], hit_width, 28.0f))
+        {
+            continue;
+        }
+
+        if (mouse.moved && *cursor != i)
+        {
+            *cursor = i;
+            SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 1);
+        }
+        if (mouse.left_pressed)
+        {
+            *cursor = i;
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+        }
+        break;
+    }
+
+    if (mouse.right_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+    }
+}
 
 #define SCR_WIDTH 640
 #define SCR_HEIGHT 224
@@ -1508,6 +1557,8 @@ int SetMessageV2_2(DISP_STR *s)
 
         if ((s->st & 0x80) == 0)
         {
+            MikuPan_MessageChoiceMouseInput(&s->csr, selnum, px, py, pw);
+
             if (s->type != 0)
             {
                 if (DPAD_UP_PRESSED() == 1)
@@ -1848,6 +1899,8 @@ int SetMessageV2(DISP_STR *s)
 
         if ((s->st & 0x80) == 0)
         {
+            MikuPan_MessageChoiceMouseInput(&s->csr, selnum, px, py, pw);
+
             if (s->type != 0)
             {
                 if (DPAD_UP_PRESSED() == 1)
@@ -2337,6 +2390,8 @@ int SubMessageV3(u_char *s, int pri, int delflg)
 
         if (msdat.decide == 0)
         {
+            MikuPan_MessageChoiceMouseInput(&msdat.csr, msdat.selnum, px, py, pw);
+
             if (msdat.seltype != 0)
             {
                 if (DPAD_UP_PRESSED() == 1)

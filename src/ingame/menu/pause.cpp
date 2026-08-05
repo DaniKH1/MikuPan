@@ -14,6 +14,7 @@
 #include "ingame/menu/pause.h"
 #include "main/gamemain.h"
 #include "main/glob.h"
+#include "mikupan/io/mikupan_controller.h"
 #include "mikupan/mikupan_memory.h"
 #include "os/eeiop/adpcm/ea_ctrl.h"
 #include "os/eeiop/eese.h"
@@ -21,6 +22,7 @@
 #include "outgame/btl_mode/btl_mode.h"
 
 static void PauseDraw(u_char alp);
+static void MikuPan_PauseMouseInput();
 static char CanPauseCHK();
 
 PAD_CTRL pad_ctrl = {0};
@@ -29,6 +31,74 @@ char in_pause = 0;
 
 static PAUSE_DSP ps_dsp;
 static FLSH_CORE flsh;
+
+static void MikuPan_PauseMouseInput()
+{
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+
+    if (mouse.right_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+        return;
+    }
+
+    if (ps_dsp.yn_mode == 0)
+    {
+#ifdef BUILD_EU_VERSION
+        const float row_x = 145.0f;
+        const float row_width = 350.0f;
+#else
+        const float row_x = 170.0f;
+        const float row_width = 300.0f;
+#endif
+        for (int i = 0; i < 3; i++)
+        {
+            if (!MikuPan_LegacyMouseHit(row_x, 181.0f + i * 29.0f,
+                                       row_width, 29.0f))
+            {
+                continue;
+            }
+
+            if (mouse.moved && pause_wrk.csr[0] != i)
+            {
+                pause_wrk.csr[0] = i;
+                SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 1);
+            }
+            if (mouse.left_pressed)
+            {
+                pause_wrk.csr[0] = i;
+                MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+            }
+            return;
+        }
+        return;
+    }
+
+    for (int i = 0; i < 2; i++)
+    {
+        if (!MikuPan_LegacyMouseHit(150.0f + i * 132.0f, 350.0f,
+                                   132.0f, 56.0f))
+        {
+            continue;
+        }
+
+        if (mouse.moved && pause_wrk.csr[1] != i)
+        {
+            pause_wrk.csr[1] = i;
+            SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 1);
+        }
+        if (mouse.left_pressed)
+        {
+            pause_wrk.csr[1] = i;
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+        }
+        return;
+    }
+}
 
 void PauseInit()
 {
@@ -94,6 +164,8 @@ int PauseMain()
     }
     else if (pause_wrk.mode == PAUSE_MODE_MENU)
     {
+        MikuPan_PauseMouseInput();
+
         if (pause_wrk.timer == 0)
         {
             ingame_wrk.stts |= INGAME_STTS_DSP3D_OFF;

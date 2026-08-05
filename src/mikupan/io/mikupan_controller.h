@@ -24,6 +24,39 @@ typedef struct
 
 #define MIKUPAN_CONTROLLER_LOGICAL_COUNT (16)
 
+#define MIKUPAN_CONTROLLER_TRIANGLE   (0)
+#define MIKUPAN_CONTROLLER_CROSS      (1)
+#define MIKUPAN_CONTROLLER_SQUARE     (2)
+#define MIKUPAN_CONTROLLER_CIRCLE     (3)
+#define MIKUPAN_CONTROLLER_DPAD_UP    (4)
+#define MIKUPAN_CONTROLLER_DPAD_DOWN  (5)
+#define MIKUPAN_CONTROLLER_DPAD_LEFT  (6)
+#define MIKUPAN_CONTROLLER_DPAD_RIGHT (7)
+#define MIKUPAN_CONTROLLER_R3         (8)
+#define MIKUPAN_CONTROLLER_SELECT     (9)
+#define MIKUPAN_CONTROLLER_START      (10)
+#define MIKUPAN_CONTROLLER_L3         (11)
+#define MIKUPAN_CONTROLLER_R1         (12)
+#define MIKUPAN_CONTROLLER_L2         (13)
+#define MIKUPAN_CONTROLLER_R2         (14)
+#define MIKUPAN_CONTROLLER_L1         (15)
+
+typedef struct
+{
+    float x;
+    float y;
+    float dx;
+    float dy;
+    int inside;
+    int moved;
+    int left_down;
+    int left_pressed;
+    int left_released;
+    int right_pressed;
+    int middle_pressed;
+    int wheel_y;
+} MikuPan_LegacyMouseState;
+
 /// Logical analog stick axes — index into the stick mapping arrays.
 #define MIKUPAN_STICK_LX    (0)
 #define MIKUPAN_STICK_LY    (1)
@@ -80,6 +113,10 @@ extern MikuPan_InputBinding         mikupan_special_action_map[MIKUPAN_SPECIAL_A
 int MikuPan_OpenController();
 int MikuPan_ReadController(unsigned char* rdata);
 void MikuPan_ControllerProcessEvent(const SDL_Event* event);
+void MikuPan_LegacyMouseBeginFrame(void);
+int MikuPan_LegacyMouseGetState(MikuPan_LegacyMouseState* state);
+int MikuPan_LegacyMouseHit(float x, float y, float width, float height);
+void MikuPan_QueueLegacyControllerButton(int logical_button);
 void MikuPan_ControllerResetBindings(void);
 /// Copy the live controller/keyboard bindings into mikupan_configuration.input
 /// (and mark them saved) so MikuPan_SaveConfiguration persists them.
