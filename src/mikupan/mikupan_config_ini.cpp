@@ -221,6 +221,8 @@ bool TryLoadConfigurationFile(const std::filesystem::path& path)
                mikupan_configuration.minimap_enabled);
     ApplyValue(ini, "gameplay", "flashlight_style",
                mikupan_configuration.flashlight_style);
+    ApplyValue(ini, "gameplay", "number_door_fix_localization",
+               mikupan_configuration.number_door_fix_localization);
     ApplyValue(ini, "gameplay", "keep_finder_raised_for_apparitions",
                mikupan_configuration.keep_finder_raised_for_apparitions);
     ApplyValue(ini, "ui", "title_room_background",
@@ -419,6 +421,8 @@ bool TrySaveConfigurationFile(const std::filesystem::path& path)
              mikupan_configuration.minimap_enabled);
     SetValue(ini, "gameplay", "flashlight_style",
              mikupan_configuration.flashlight_style);
+    SetValue(ini, "gameplay", "number_door_fix_localization",
+             mikupan_configuration.number_door_fix_localization);
     SetValue(ini, "gameplay", "keep_finder_raised_for_apparitions",
              mikupan_configuration.keep_finder_raised_for_apparitions);
     SetValue(ini, "ui", "title_room_background",
