@@ -36,7 +36,7 @@ The executable will be located at `{CMake-Build-Directory}/MikuPan`.
 ![logo](extern/required-files.png)
 
 ## Windows
-You need either `MinGW` or `Cygwin` with `gcc` and `CMake` in order to build `MikuPan`. `MSVC` will *NOT* work. 
+You need either `MinGW` or `Cygwin` with `gcc` and `CMake` in order to build `MikuPan`. `MSVC` with *CMake* will *ALSO* work. 
 
 ## Linux
 `GCC` and `CMake` required to build `MikuPan`.
