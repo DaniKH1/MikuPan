@@ -64,7 +64,7 @@ MikuPan_Config mikupan_configuration = {
     1,
     1.0f,
     0,
-    1,
+    0,
     MIKUPAN_FLASHLIGHT_STYLE_PS2,
     0,
     0,

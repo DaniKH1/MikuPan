@@ -68,7 +68,7 @@ u_int * GetSdrDoorSeTblP(u_char room_id)
   
     door_no = rm_snd_info[room_id].door_no;
 
-    if (ingame_wrk.msn_no != 1 && room_id == 13)
+    if (ingame_wrk.msn_no != 1 && room_id == R013_ANUTSU)
     {
         door_no = RM_DOOR_SIZE;
     }

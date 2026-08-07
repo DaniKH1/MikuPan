@@ -178,7 +178,7 @@ int GameInitLoad()
         sys_wrk.load_mode = INGAME_INIT_LOAD_EFCT;
     case INGAME_INIT_LOAD_EFCT:
 #ifdef BUILD_EU_VERSION
-        init_load_id = LoadReqLanguage(FNT001_E_PK2, 0x1e30000);
+        init_load_id = LoadReqLanguage(FNT001_E_PK2, FontTextAddress);
 #else
         init_load_id = LoadReq(FNT001_PK2, FontTextAddress);
 #endif
@@ -222,12 +222,12 @@ void GameModeChange(u_char mode)
 {
     switch (mode)
     {
-    case GAME_MODE_INIT:
+    case GMC_OUT_MENU_IN:
         MovieInitWrk();
         sys_wrk.game_mode = GAME_MODE_INGAME;
         ingame_wrk.mode = INGAME_MODE_FIRST_LOAD;
     break;
-    case GAME_MODE_MCCHECK:
+    case GMC_IN_GAMEOVER_OUT:
         sys_wrk.game_mode = GAME_MODE_OUTGAME;
         if (ingame_wrk.game == INGAME_MODE_INIT)
         {
@@ -242,7 +242,7 @@ void GameModeChange(u_char mode)
         }
         SetReverbVolume(0x2fff);
     break;
-    case GAME_MODE_OUTGAME:
+    case GMC_IN_GAMECLEAR_OUT:
         sys_wrk.game_mode = GAME_MODE_OUTGAME;
         if (ingame_wrk.game != INGAME_MODE_INIT)
         {
@@ -250,7 +250,7 @@ void GameModeChange(u_char mode)
         }
         SetReverbVolume(0x2fff);
     break;
-    case GAME_MODE_INGAME:
+    case GMC_IN_GAMERETIRE_OUT:
         sys_wrk.game_mode = GAME_MODE_OUTGAME;
         title_wrk.mode = TITLE_INIT_FROM_IN;
         SetReverbVolume(0x2fff);

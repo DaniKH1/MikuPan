@@ -271,7 +271,6 @@ static MoviePlaybackState g_movie_playback = {0};
 #define STACK_SIZE (16 * 1024)
 
 void MovieInitWrk(void)
-
 {
     movie_wrk.play_event_no = 0;
     movie_wrk.play_event_sta = 0;

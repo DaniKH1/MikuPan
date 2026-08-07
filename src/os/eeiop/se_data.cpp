@@ -179,7 +179,7 @@ char CheckSeUse(int se_no)
     u_char type;
     u_char tbl_no;
 
-    if (se_no >= 0 && se_no < SE_ENE0_GRASP)
+    if (se_no >= SE_CSR0 && se_no < SE_ENE0_GRASP)
     {
         return se_use_static_tbl[0][se_no];
     }
@@ -348,7 +348,7 @@ char GetSeUseTbl(u_char type, u_char tbl_no, u_char se_no)
 
     se_addr = type;
 
-    if (se_addr > 0 && se_addr <= 25)
+    if (se_addr > SE_ADDRNO_STATIC && se_addr <= SE_ADDRNO_JIDOU3)
     {
         switch (se_addr)
         {

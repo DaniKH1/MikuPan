@@ -182,7 +182,7 @@ void SeStopAndBackup(void)
 
         if (se_wrk[i].status != 0)
         {
-            if (se_wrk[i].fade_mode != 2 && (se_wrk[i].atr & 7) != 2
+            if (se_wrk[i].fade_mode != SE_FADE_OUT && (se_wrk[i].atr & 7) != 2
                 && CheckSeUse(se_wrk[i].se_p) == 2)
             {
                 se_wrk_bk[i] = se_wrk[i];
@@ -340,7 +340,7 @@ int SeStartFixV(int se_no, u_short fin_spd, u_short vol_max, u_short pitch,
                 u_char voice_no)
 {
     SE_REQ_TMP_STR tmp;
-    int vpos;
+    int vpos = 1;
 
     if (se_no == 0xff)
     {
@@ -619,13 +619,13 @@ static void SeStartVp(SE_REQ_TMP_STR *tmp_str)
 
     if (swp->fade_spd == 0)
     {
-        swp->fade_mode = 0;
+        swp->fade_mode = SE_FADE_NONE;
         swp->fade_vol = tmp_str->vol_max;
         swp->fade_tgt = tmp_str->vol_max;
     }
     else
     {
-        swp->fade_mode = 1;
+        swp->fade_mode = SE_FADE_IN;
         swp->fade_vol = 0;
         swp->fade_tgt = tmp_str->vol_max;
     }
@@ -749,62 +749,62 @@ int SeStartPosSrundFlame(u_char room_id, float *pos, u_short flame,
 
     switch (room_id)
     {
-        case 2:
+        case R002_IZANAI:
             req_file_no = SS002_BD;
             break;
-        case 3:
+        case R003_OUSETSU:
             req_file_no = SS003_BD;
             break;
-        case 4:
+        case R004:
             req_file_no = SS004_BD;
             break;
-        case 7:
+        case R007_TOMURAI:
             req_file_no = SS007_BD;
             break;
-        case 9:
+        case R009_NANDO:
             req_file_no = SS009_BD;
             break;
-        case 11:
+        case R011_GOIMON:
             req_file_no = SS011_BD;
             break;
-        case 12:
+        case R012_IMA:
             req_file_no = SS012_BD;
             break;
-        case 14:
+        case R014:
             req_file_no = SS014_BD;
             break;
-        case 15:
+        case R015_KOUJI:
             req_file_no = SS015_BD;
             break;
-        case 16:
+        case R016_NAKANIWA:
             req_file_no = SS016_BD;
             break;
-        case 20:
+        case R020:
             req_file_no = SS020_BD;
             break;
-        case 21:
+        case R021_URANIWA:
             req_file_no = SS021_BD;
             break;
-        case 22:
+        case R022_NAKASU:
             req_file_no = SS022_BD;
             break;
-        case 30:
+        case R030:
             req_file_no = SS030_BD;
             break;
-        case 28:
-        case 29:
-        case 32:
-        case 34:
+        case R028:
+        case R029:
+        case R032:
+        case R034:
             req_file_no = SS028_BD;
             break;
-        case 10:
-        case 40:
+        case R010_NINGYO:
+        case R040:
             req_file_no = SS010_BD;
             break;
-        case 41:
+        case R041_HIKAE:
             req_file_no = SS041_BD;
             break;
-        case 0:
+        case R000_GENKAN:
         default:
             req_file_no = SS000_BD;
             break;
@@ -814,7 +814,7 @@ int SeStartPosSrundFlame(u_char room_id, float *pos, u_short flame,
     {
         if (se_ctrl.srund_no[i] == req_file_no)
         {
-            req_se_no = i + 0x34;
+            req_se_no = i + SE_SURROUND0;
             break;
         }
     }
@@ -986,7 +986,7 @@ void SeFadeOut(int voice_num, int fout_spd, int tgt_vol)
 
     if (swp != NULL)
     {
-        swp->fade_mode = 2;
+        swp->fade_mode = SE_FADE_OUT;
         swp->fade_spd = fout_spd;
         swp->fade_tgt = tgt_vol;
     }
@@ -1011,7 +1011,7 @@ void SeFadeFlame(int voice_num, u_short flame, u_short tgt_vol)
 
     if (tgt_vol < swp->fade_vol)
     {
-        swp->fade_mode = 0x2;
+        swp->fade_mode = SE_FADE_OUT;
         swp->fade_spd = (swp->fade_vol - tgt_vol) / flame;
 
         if (swp->fade_spd == 0)
@@ -1021,11 +1021,11 @@ void SeFadeFlame(int voice_num, u_short flame, u_short tgt_vol)
     }
     else if (tgt_vol == swp->fade_vol)
     {
-        swp->fade_mode = 0;
+        swp->fade_mode = SE_FADE_NONE;
     }
     else
     {
-        swp->fade_mode = 1;
+        swp->fade_mode = SE_FADE_IN;
         swp->fade_spd = (tgt_vol - swp->fade_vol) / flame;
 
         if (swp->fade_spd == 0)
@@ -1153,7 +1153,7 @@ int SeFileLoadAndSet(u_int file_no, int type)
 
     ret = -1;
 
-    if (type >= 0 && type < 26)
+    if (type >= SE_ADDRNO_STATIC && type < SE_ADDRNO_SB0)
     {
         switch (type)
         {
@@ -1171,7 +1171,7 @@ int SeFileLoadAndSet(u_int file_no, int type)
             case SE_ADDRNO_DOOR0:
             case SE_ADDRNO_DOOR1:
             case SE_ADDRNO_DOOR2:
-                se_ctrl.door_no[type - 3] = file_no;
+                se_ctrl.door_no[type - SE_ADDRNO_DOOR0] = file_no;
                 ret = LoadReqSe(file_no, type);
                 break;
             case SE_ADDRNO_FOOT0:
@@ -1182,25 +1182,25 @@ int SeFileLoadAndSet(u_int file_no, int type)
             case SE_ADDRNO_FOOT5:
             case SE_ADDRNO_FOOT6:
             case SE_ADDRNO_FOOT7:
-                se_ctrl.foot_no[type - 6] = file_no;
+                se_ctrl.foot_no[type - SE_ADDRNO_FOOT0] = file_no;
                 ret = LoadReqSe(file_no, type);
                 break;
             case SE_ADDRNO_SRUND0:
             case SE_ADDRNO_SRUND1:
-                se_ctrl.srund_no[type - 14] = file_no;
+                se_ctrl.srund_no[type - SE_ADDRNO_SRUND0] = file_no;
                 ret = LoadReqSe(file_no, type);
                 break;
             case SE_ADDRNO_GHOST0:
             case SE_ADDRNO_GHOST1:
             case SE_ADDRNO_GHOST2:
-                se_ctrl.ghost_no[type - 16] = file_no;
-                se_ctrl.ghost_type[type - 16] = 0;
+                se_ctrl.ghost_no[type - SE_ADDRNO_GHOST0] = file_no;
+                se_ctrl.ghost_type[type - SE_ADDRNO_GHOST0] = 0;
                 ret = LoadReqSe(file_no, type);
                 FloatGhostSENotEmpty();
                 return ret;
             case SE_ADDRNO_EVENT0:
             case SE_ADDRNO_EVENT1:
-                se_ctrl.event_no[type - 19] = file_no;
+                se_ctrl.event_no[type - SE_ADDRNO_EVENT0] = file_no;
                 ret = LoadReqSe(file_no, type);
                 break;
             case SE_ADDRNO_WIDE:
@@ -1211,7 +1211,7 @@ int SeFileLoadAndSet(u_int file_no, int type)
             case SE_ADDRNO_JIDOU1:
             case SE_ADDRNO_JIDOU2:
             case SE_ADDRNO_JIDOU3:
-                se_ctrl.jidou_no[type - 22] = file_no;
+                se_ctrl.jidou_no[type - SE_ADDRNO_JIDOU0] = file_no;
                 ret = LoadReqSe(file_no, type);
                 break;
         }
@@ -1224,12 +1224,12 @@ int SeFileLoadAndSetFGhost(u_int file_no, int type)
 {
     int ret;
 
-    if (type < 19)
+    if (type < SE_ADDRNO_EVENT0)
     {
-        if (type > 15)
+        if (type > SE_ADDRNO_SRUND1)
         {
-            se_ctrl.ghost_no[type - 16] = file_no;
-            se_ctrl.ghost_type[type - 16] = 1;
+            se_ctrl.ghost_no[type - SE_ADDRNO_GHOST0] = file_no;
+            se_ctrl.ghost_type[type - SE_ADDRNO_GHOST0] = 1;
             ret = LoadReqSe(file_no, type);
             FloatGhostSENotEmpty();
             return ret;
@@ -1368,12 +1368,12 @@ void SeStartVpCmn(int se_no, int vpos, float *pos, float *mb, int fin_spd,
 
     if ((fin_spd & 0xffff) == 0)
     {
-        swp->fade_mode = 0;
+        swp->fade_mode = SE_FADE_NONE;
         swp->fade_vol = 0xfff;
     }
     else
     {
-        swp->fade_mode = 1;
+        swp->fade_mode = SE_FADE_IN;
         swp->fade_vol = 0;
     }
 
