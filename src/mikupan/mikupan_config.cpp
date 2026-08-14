@@ -36,7 +36,8 @@ MikuPan_Config mikupan_configuration = {
         0,
         "",
         0,
-        MIKUPAN_FINDER_VIEWPORT_MASK_BLUR
+        MIKUPAN_FINDER_VIEWPORT_MASK_BLUR,
+        1
     },
     {
         0,
@@ -217,6 +218,7 @@ static void MikuPan_ConfigurationValidateRenderer(
 
     /* Older test builds used 1=Linear and 2=Soft. Both now collapse to Soft. */
     renderer->dither_mode = renderer->dither_mode <= 0 ? 0 : 1;
+    renderer->hd_font_textures = renderer->hd_font_textures ? 1 : 0;
 
     renderer->gpu_debug = renderer->gpu_debug ? 1 : 0;
     renderer->finder_viewport_mask_mode =

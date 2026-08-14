@@ -99,6 +99,7 @@ typedef struct
     char gpu_driver[32];
     int gpu_debug;
     int finder_viewport_mask_mode; /* MikuPan_FinderViewportMaskMode */
+    int hd_font_textures;
 } MikuPan_ConfigRenderer;
 
 /* Apply a window display mode to the SDL window.

@@ -331,6 +331,7 @@ void MikuPan_RenderScreenCopyTriangles3DSTQ(sceGsTex0 *tex, float *buffer, int v
 const MikuPan_TextureInfo *MikuPan_GetScreenCopyTextureInfo(void);
 const MikuPan_ScreenCopyDebugInfo *MikuPan_GetScreenCopyDebugInfo(void);
 void MikuPan_SetupFntTexture();
+void MikuPan_SetHdFontTexturesEnabled(int enabled);
 void MikuPan_SetWorldClipView();
 float* MikuPan_GetWorldClipView();
 float* MikuPan_GetWorldClip();
