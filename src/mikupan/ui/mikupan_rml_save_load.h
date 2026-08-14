@@ -29,6 +29,7 @@ int MikuPan_RmlSaveLoadActivate(void);
 int MikuPan_RmlSaveLoadHandleCancel(void);
 int MikuPan_RmlSaveLoadConsumeResult(void);
 void MikuPan_RmlSaveLoadCapturePreview(void);
+void MikuPan_RmlSaveLoadApplyLanguage(int language);
 
 #ifdef __cplusplus
 }

@@ -345,7 +345,6 @@ body {
 .mode-select-story-label,
 .mode-select-story-selector,
 .mode-select-story-action {
-    color: inherit;
     font-family: MikuPanRmlZapf;
     font-size: 18dp;
     line-height: 43dp;
@@ -397,7 +396,6 @@ body {
     display: block;
     height: 43dp;
     line-height: 43dp;
-    color: inherit;
     text-align: center;
     opacity: 1;
     visibility: visible;
@@ -437,7 +435,6 @@ body {
     display: block;
     width: 100%;
     height: 43dp;
-    color: inherit;
     line-height: 43dp;
     text-align: center;
     opacity: 1;
@@ -487,7 +484,6 @@ body {
     display: block;
     width: 34dp;
     height: 31dp;
-    color: inherit;
     font-family: MikuPanRml;
     font-size: 22dp;
     line-height: 31dp;

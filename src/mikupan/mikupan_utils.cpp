@@ -1,5 +1,7 @@
 #include "mikupan_utils.h"
 
+#include "main/glob.h"
+
 #include <cmath>
 #include <stdlib.h>
 
@@ -393,4 +395,9 @@ float MikuPan_ClampFloat(float value, float min_value, float max_value)
 bool MikuPan_IsFiniteFloat(float value)
 {
     return std::isfinite(value);
+}
+
+int MikuPan_GetUiLanguage(void)
+{
+    return MikuPan_ClampInt(sys_wrk.language, 0, 4);
 }

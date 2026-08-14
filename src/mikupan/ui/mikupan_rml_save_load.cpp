@@ -160,6 +160,7 @@ struct MikuPanRmlSaveLoadState
     int confirm_entry = -1;
     int confirm_selection = 1;
     int queued_result = MIKUPAN_RML_SAVE_LOAD_RESULT_NONE;
+    int language = 0;
     bool initialized = false;
     bool open = false;
     bool save_mode = false;
@@ -214,6 +215,168 @@ static Rml::Element* MikuPan_RmlSaveLoadGetElement(const char* id)
     return g_save_load.document != nullptr
         ? g_save_load.document->GetElementById(id)
         : nullptr;
+}
+
+enum MikuPanSaveLoadString
+{
+    kSaveLoadStrSaveFile,
+    kSaveLoadStrLoadFile,
+    kSaveLoadStrBackHint,
+    kSaveLoadStrControlsHint,
+    kSaveLoadStrYes,
+    kSaveLoadStrNo,
+    kSaveLoadStrOk,
+    kSaveLoadStrSaveComplete,
+    kSaveLoadStrConfirmNewSave,
+    kSaveLoadStrConfirmReplace,
+    kSaveLoadStrConfirmLoad,
+    kSaveLoadStrCreateNewSave,
+    kSaveLoadStrNoSaveFilesFound,
+    kSaveLoadStrCreateNewSaveFile,
+    kSaveLoadStrNoSaveSelected,
+    kSaveLoadStrSelectSaveHint,
+    kSaveLoadStrSaveModeHint,
+    kSaveLoadStrLoadModeEmptyHint,
+    kSaveLoadStrSelectToContinue,
+    kSaveLoadStrSaveNotReady,
+    kSaveLoadStrCouldNotCreateFolder,
+    kSaveLoadStrCouldNotOpenSave,
+    kSaveLoadStrCouldNotWriteSave,
+    kSaveLoadStrSaveDataUpdated,
+    kSaveLoadStrLoadNotReady,
+    kSaveLoadStrInvalidSize,
+    kSaveLoadStrCouldNotReadSave,
+    kSaveLoadStrCorrupt,
+    kSaveLoadStrIntro,
+    kSaveLoadStrNight1st,
+    kSaveLoadStrNight2nd,
+    kSaveLoadStrNight3rd,
+    kSaveLoadStrNight4th,
+    kSaveLoadStrClearData,
+    kSaveLoadStrPrologue,
+    kSaveLoadStrNightPrefix,
+    kSaveLoadStrRoomPrefix,
+    kSaveLoadStrNormal,
+    kSaveLoadStrNightmare,
+    kSaveLoadStrDifficultyPrefix,
+    kSaveLoadStrUnknownDate,
+    kSaveLoadStrLegacySave,
+    kSaveLoadStrSavePrefix,
+    kSaveLoadStrClearPrefix,
+    kSaveLoadStrItemDataUnavailable,
+    kSaveLoadStrPlayLabel,
+    kSaveLoadStrShotsLabel,
+    kSaveLoadStrPointsLabel,
+    kSaveLoadStrCount
+};
+
+static const char* MikuPan_RmlSaveLoadTr(MikuPanSaveLoadString id)
+{
+    static const char* const kStrings[5][kSaveLoadStrCount] = {
+        {
+            "SAVE FILE", "LOAD FILE", "Back: Y / Esc",
+            "Move: D-Pad / Stick&#160;&#160;&#160; Select: A / Enter",
+            "Yes", "No", "OK", "Save Complete.",
+            "Create a new save file?", "Replace this save?", "Load this save?",
+            "Create a new save", "No save files found.", "Create a new save file",
+            "No save selected", "Select a save from the list above.",
+            "Create a new save or select an existing save to replace.",
+            "No save files were found.", "Select a save to continue.",
+            "Save system is not ready.", "Could not create the save folder.",
+            "Could not open the save file.", "Could not write the save file.",
+            "Save data updated.", "Load system is not ready.",
+            "This save file has an invalid size.",
+            "Could not read the save file.", "The save file is corrupt.",
+            "Intro", "1st Night", "2nd Night", "3rd Night", "4th Night",
+            "Clear Data", "Prologue", "Night", "Room",
+            "Normal", "Nightmare", "Difficulty",
+            "Unknown date", "Legacy Save", "Save", "Clear",
+            "Item data unavailable", "Play", "Shots", "Points",
+        },
+        {
+            "FICHIER DE SAUVEGARDE", "CHARGER UN FICHIER", "Retour : Y / Échap",
+            "Déplacer : D-Pad / Stick&#160;&#160;&#160; Valider : A / Entrée",
+            "Oui", "Non", "OK", "Sauvegarde terminée.",
+            "Créer une nouvelle sauvegarde ?", "Remplacer cette sauvegarde ?", "Charger cette sauvegarde ?",
+            "Créer une nouvelle sauvegarde", "Aucun fichier de sauvegarde trouvé.", "Créer un nouveau fichier de sauvegarde",
+            "Aucune sauvegarde sélectionnée", "Sélectionnez une sauvegarde dans la liste ci-dessus.",
+            "Créez une nouvelle sauvegarde ou remplacez-en une existante.",
+            "Aucun fichier de sauvegarde trouvé.", "Sélectionnez une sauvegarde pour continuer.",
+            "Le système de sauvegarde n'est pas prêt.", "Impossible de créer le dossier de sauvegarde.",
+            "Impossible d'ouvrir le fichier de sauvegarde.", "Impossible d'écrire le fichier de sauvegarde.",
+            "Sauvegarde mise à jour.", "Le système de chargement n'est pas prêt.",
+            "Ce fichier de sauvegarde a une taille invalide.",
+            "Impossible de lire le fichier de sauvegarde.", "Le fichier de sauvegarde est corrompu.",
+            "Intro", "1ère nuit", "2ème nuit", "3ème nuit", "4ème nuit",
+            "Partie terminée", "Prologue", "Nuit", "Salle",
+            "Normal", "Cauchemar", "Difficulté",
+            "Date inconnue", "Sauvegarde héritée", "Sauvegarde", "Terminé",
+            "Données d'objets indisponibles", "Temps", "Photos", "Points",
+        },
+        {
+            "SPIEL SPEICHERN", "SPIEL LADEN", "Zurück: Y / Esc",
+            "Bewegen: D-Pad / Stick&#160;&#160;&#160; Auswählen: A / Enter",
+            "Ja", "Nein", "OK", "Speichern abgeschlossen.",
+            "Neuen Spielstand erstellen?", "Diesen Spielstand ersetzen?", "Diesen Spielstand laden?",
+            "Neuen Spielstand erstellen", "Keine Spielstände gefunden.", "Neue Speicherdatei erstellen",
+            "Kein Spielstand ausgewählt", "Wähle einen Spielstand aus der Liste oben.",
+            "Erstelle einen neuen Spielstand oder ersetze einen vorhandenen.",
+            "Keine Spielstände gefunden.", "Wähle einen Spielstand, um fortzufahren.",
+            "Speichersystem ist nicht bereit.", "Speicherordner konnte nicht erstellt werden.",
+            "Speicherdatei konnte nicht geöffnet werden.", "Speicherdatei konnte nicht geschrieben werden.",
+            "Speicherdaten aktualisiert.", "Ladesystem ist nicht bereit.",
+            "Diese Speicherdatei hat eine ungültige Größe.",
+            "Speicherdatei konnte nicht gelesen werden.", "Die Speicherdatei ist beschädigt.",
+            "Intro", "1. Nacht", "2. Nacht", "3. Nacht", "4. Nacht",
+            "Spiel beendet", "Prolog", "Nacht", "Raum",
+            "Normal", "Albtraum", "Schwierigkeit",
+            "Unbekanntes Datum", "Alter Spielstand", "Spielstand", "Abgeschlossen",
+            "Objektdaten nicht verfügbar", "Zeit", "Fotos", "Punkte",
+        },
+        {
+            "GUARDAR PARTIDA", "CARGAR PARTIDA", "Volver: Y / Esc",
+            "Mover: D-Pad / Stick&#160;&#160;&#160; Seleccionar: A / Intro",
+            "Sí", "No", "OK", "Guardado completo.",
+            "¿Crear una nueva partida guardada?", "¿Reemplazar esta partida guardada?", "¿Cargar esta partida guardada?",
+            "Crear una nueva partida guardada", "No se encontraron partidas guardadas.", "Crear un nuevo archivo de guardado",
+            "Ninguna partida seleccionada", "Selecciona una partida guardada de la lista de arriba.",
+            "Crea una partida nueva o selecciona una existente para reemplazarla.",
+            "No se encontraron partidas guardadas.", "Selecciona una partida guardada para continuar.",
+            "El sistema de guardado no está listo.", "No se pudo crear la carpeta de guardado.",
+            "No se pudo abrir el archivo de guardado.", "No se pudo escribir el archivo de guardado.",
+            "Datos guardados actualizados.", "El sistema de carga no está listo.",
+            "Este archivo de guardado tiene un tamaño no válido.",
+            "No se pudo leer el archivo de guardado.", "El archivo de guardado está dañado.",
+            "Intro", "1.ª noche", "2.ª noche", "3.ª noche", "4.ª noche",
+            "Partida terminada", "Prólogo", "Noche", "Sala",
+            "Normal", "Pesadilla", "Dificultad",
+            "Fecha desconocida", "Partida heredada", "Partida", "Completado",
+            "Datos de objetos no disponibles", "Tiempo", "Fotos", "Puntos",
+        },
+        {
+            "SALVA PARTITA", "CARICA PARTITA", "Indietro: Y / Esc",
+            "Muovi: D-Pad / Stick&#160;&#160;&#160; Seleziona: A / Invio",
+            "Sì", "No", "OK", "Salvataggio completato.",
+            "Creare un nuovo salvataggio?", "Sostituire questo salvataggio?", "Caricare questo salvataggio?",
+            "Crea un nuovo salvataggio", "Nessun file di salvataggio trovato.", "Crea un nuovo file di salvataggio",
+            "Nessun salvataggio selezionato", "Seleziona un salvataggio dall'elenco sopra.",
+            "Crea un nuovo salvataggio o selezionane uno esistente da sostituire.",
+            "Nessun file di salvataggio trovato.", "Seleziona un salvataggio per continuare.",
+            "Il sistema di salvataggio non è pronto.", "Impossibile creare la cartella di salvataggio.",
+            "Impossibile aprire il file di salvataggio.", "Impossibile scrivere il file di salvataggio.",
+            "Dati di salvataggio aggiornati.", "Il sistema di caricamento non è pronto.",
+            "Questo file di salvataggio ha una dimensione non valida.",
+            "Impossibile leggere il file di salvataggio.", "Il file di salvataggio è corrotto.",
+            "Intro", "1ª notte", "2ª notte", "3ª notte", "4ª notte",
+            "Partita finita", "Prologo", "Notte", "Stanza",
+            "Normale", "Incubo", "Difficoltà",
+            "Data sconosciuta", "Salvataggio ereditato", "Salvataggio", "Completato",
+            "Dati oggetti non disponibili", "Tempo", "Foto", "Punti",
+        },
+    };
+
+    const int lang = std::clamp(g_save_load.language, 0, 4);
+    return kStrings[lang][id];
 }
 
 static void MikuPan_RmlSaveLoadSetHidden(Rml::Element* element, bool hidden)
@@ -587,9 +750,10 @@ static std::string MikuPan_RmlSaveLoadNightName(
 
     if (mission == 0)
     {
-        return "Prologue";
+        return MikuPan_RmlSaveLoadTr(kSaveLoadStrPrologue);
     }
-    return "Night " + std::to_string(mission);
+    return std::string(MikuPan_RmlSaveLoadTr(kSaveLoadStrNightPrefix)) + " "
+        + std::to_string(mission);
 }
 
 static std::string MikuPan_RmlSaveLoadNightLabel(
@@ -598,17 +762,17 @@ static std::string MikuPan_RmlSaveLoadNightLabel(
     switch (header.msn_no)
     {
     case 0:
-        return "Intro";
+        return MikuPan_RmlSaveLoadTr(kSaveLoadStrIntro);
     case 1:
-        return "1st Night";
+        return MikuPan_RmlSaveLoadTr(kSaveLoadStrNight1st);
     case 2:
-        return "2nd Night";
+        return MikuPan_RmlSaveLoadTr(kSaveLoadStrNight2nd);
     case 3:
-        return "3rd Night";
+        return MikuPan_RmlSaveLoadTr(kSaveLoadStrNight3rd);
     case 4:
-        return "4th Night";
+        return MikuPan_RmlSaveLoadTr(kSaveLoadStrNight4th);
     default:
-        return "Clear Data";
+        return MikuPan_RmlSaveLoadTr(kSaveLoadStrClearData);
     }
 }
 
@@ -622,7 +786,11 @@ static std::string MikuPan_RmlSaveLoadRoomName(
     }
 
     char buffer[64];
-    std::snprintf(buffer, sizeof(buffer), "Room %03u", header.room_no);
+    std::snprintf(buffer,
+                  sizeof(buffer),
+                  "%s %03u",
+                  MikuPan_RmlSaveLoadTr(kSaveLoadStrRoomPrefix),
+                  header.room_no);
     return buffer;
 }
 
@@ -1668,7 +1836,7 @@ static void MikuPan_RmlSaveLoadScan(void)
         }
         else
         {
-            entry.saved_at = "Unknown date";
+            entry.saved_at = MikuPan_RmlSaveLoadTr(kSaveLoadStrUnknownDate);
             error.clear();
         }
 
@@ -1715,11 +1883,12 @@ static std::string MikuPan_RmlSaveLoadDifficulty(const MC_GAME_HEADER& header)
     switch (header.difficult)
     {
     case 0:
-        return "Normal";
+        return MikuPan_RmlSaveLoadTr(kSaveLoadStrNormal);
     case 1:
-        return "Nightmare";
+        return MikuPan_RmlSaveLoadTr(kSaveLoadStrNightmare);
     default:
-        return "Difficulty " + std::to_string(header.difficult);
+        return std::string(MikuPan_RmlSaveLoadTr(kSaveLoadStrDifficultyPrefix))
+            + " " + std::to_string(header.difficult);
     }
 }
 
@@ -1865,7 +2034,9 @@ static void MikuPan_RmlSaveLoadBuildList(void)
             "<button id=\"save-entry-0\" class=\"save-list-item save-create-item\">"
             + entry_backing
             + "<div class=\"save-create-copy\">"
-            "<div class=\"save-create-title\">Create a new save</div>"
+            "<div class=\"save-create-title\">"
+            + std::string(MikuPan_RmlSaveLoadTr(kSaveLoadStrCreateNewSave))
+            + "</div>"
             "</div></button>";
         selection = 1;
     }
@@ -1878,7 +2049,8 @@ static void MikuPan_RmlSaveLoadBuildList(void)
             char slot_label[32];
             std::snprintf(slot_label,
                           sizeof(slot_label),
-                          "Save %03d",
+                          "%s %03d",
+                          MikuPan_RmlSaveLoadTr(kSaveLoadStrSavePrefix),
                           entry.display_slot_number);
             save_label = slot_label;
         }
@@ -1910,7 +2082,9 @@ static void MikuPan_RmlSaveLoadBuildList(void)
 
     if (g_save_load.entries.empty() && !g_save_load.save_mode)
     {
-        rml += "<div class=\"save-empty-list\">No save files found.</div>";
+        rml += "<div class=\"save-empty-list\">"
+            + std::string(MikuPan_RmlSaveLoadTr(kSaveLoadStrNoSaveFilesFound))
+            + "</div>";
     }
 
     g_save_load.list->SetInnerRML(rml);
@@ -1981,7 +2155,7 @@ static void MikuPan_RmlSaveLoadSyncDetail(void)
     if (g_save_load.save_mode && g_save_load.selected == 0)
     {
         MikuPan_RmlSaveLoadSetDetailPlaceholder(
-            "Create a new save file",
+            MikuPan_RmlSaveLoadTr(kSaveLoadStrCreateNewSaveFile),
             {});
         return;
     }
@@ -1992,8 +2166,8 @@ static void MikuPan_RmlSaveLoadSyncDetail(void)
         || entry_index >= static_cast<int>(g_save_load.entries.size()))
     {
         MikuPan_RmlSaveLoadSetDetailPlaceholder(
-            "No save selected",
-            "Select a save from the list above.");
+            MikuPan_RmlSaveLoadTr(kSaveLoadStrNoSaveSelected),
+            MikuPan_RmlSaveLoadTr(kSaveLoadStrSelectSaveHint));
         return;
     }
 
@@ -2006,13 +2180,14 @@ static void MikuPan_RmlSaveLoadSyncDetail(void)
         ? ""
         : " legacy-save";
 
-    std::string save_label = "Legacy Save";
+    std::string save_label = MikuPan_RmlSaveLoadTr(kSaveLoadStrLegacySave);
     if (entry.mikupan_save && entry.display_slot_number >= 0)
     {
         char slot_label[32];
         std::snprintf(slot_label,
                       sizeof(slot_label),
-                      "Save %03d",
+                      "%s %03d",
+                      MikuPan_RmlSaveLoadTr(kSaveLoadStrSavePrefix),
                       entry.display_slot_number);
         save_label = slot_label;
     }
@@ -2038,7 +2213,9 @@ static void MikuPan_RmlSaveLoadSyncDetail(void)
         ? entry.gameplay.ingame.clear_count
         : entry.header.clear_flg;
     const std::string clear_rml = clear_count != 0
-        ? "<span class=\"save-detail-clear\">Clear &#215;"
+        ? "<span class=\"save-detail-clear\">"
+            + std::string(MikuPan_RmlSaveLoadTr(kSaveLoadStrClearPrefix))
+            + " &#215;"
             + std::to_string(clear_count)
             + "</span>"
         : "";
@@ -2053,8 +2230,8 @@ static void MikuPan_RmlSaveLoadSyncDetail(void)
     const std::string item_rows = entry.gameplay.available
         ? MikuPan_RmlSaveLoadItemRows(entry, g_save_load.detail_icons_ready)
         : "<div class=\"save-detail-items-unavailable\">"
-          "Item data unavailable"
-          "</div>";
+          + std::string(MikuPan_RmlSaveLoadTr(kSaveLoadStrItemDataUnavailable))
+          + "</div>";
 
     g_save_load.detail->SetInnerRML(
         "<div class=\"save-detail-content"
@@ -2086,13 +2263,16 @@ static void MikuPan_RmlSaveLoadSyncDetail(void)
         "<span class=\"save-detail-difficulty\">"
         + MikuPan_RmlSaveLoadDifficulty(entry.header)
         + "</span>"
-        "<span class=\"save-detail-time\">Play "
+        "<span class=\"save-detail-time\">"
+        + std::string(MikuPan_RmlSaveLoadTr(kSaveLoadStrPlayLabel)) + " "
         + MikuPan_RmlSaveLoadPlayTime(entry.header)
         + "</span>"
-        "<span class=\"save-detail-shots\">Shots "
+        "<span class=\"save-detail-shots\">"
+        + std::string(MikuPan_RmlSaveLoadTr(kSaveLoadStrShotsLabel)) + " "
         + shots
         + "</span>"
-        "<span class=\"save-detail-points\">Points "
+        "<span class=\"save-detail-points\">"
+        + std::string(MikuPan_RmlSaveLoadTr(kSaveLoadStrPointsLabel)) + " "
         + points
         + "</span>"
         "</div><div class=\"save-detail-rule\"></div>"
@@ -2168,7 +2348,8 @@ static void MikuPan_RmlSaveLoadSyncConfirm(void)
     }
     if (g_save_load.confirm_yes_label != nullptr)
     {
-        g_save_load.confirm_yes_label->SetInnerRML(notice ? "OK" : "Yes");
+        g_save_load.confirm_yes_label->SetInnerRML(
+            notice ? MikuPan_RmlSaveLoadTr(kSaveLoadStrOk) : MikuPan_RmlSaveLoadTr(kSaveLoadStrYes));
     }
     if (g_save_load.confirm_yes != nullptr)
     {
@@ -2255,7 +2436,7 @@ static bool MikuPan_RmlSaveLoadWrite(const std::filesystem::path& path)
     if (!g_save_load.mc_active || mc_ctrl.work_addr == nullptr
         || mc_game_size == 0)
     {
-        MikuPan_RmlSaveLoadSetStatus("Save system is not ready.", true);
+        MikuPan_RmlSaveLoadSetStatus(MikuPan_RmlSaveLoadTr(kSaveLoadStrSaveNotReady), true);
         return false;
     }
 
@@ -2263,7 +2444,7 @@ static bool MikuPan_RmlSaveLoadWrite(const std::filesystem::path& path)
     std::filesystem::create_directories(path.parent_path(), error);
     if (error)
     {
-        MikuPan_RmlSaveLoadSetStatus("Could not create the save folder.", true);
+        MikuPan_RmlSaveLoadSetStatus(MikuPan_RmlSaveLoadTr(kSaveLoadStrCouldNotCreateFolder), true);
         return false;
     }
 
@@ -2273,7 +2454,7 @@ static bool MikuPan_RmlSaveLoadWrite(const std::filesystem::path& path)
     std::ofstream output(path, std::ios::binary | std::ios::trunc);
     if (!output)
     {
-        MikuPan_RmlSaveLoadSetStatus("Could not open the save file.", true);
+        MikuPan_RmlSaveLoadSetStatus(MikuPan_RmlSaveLoadTr(kSaveLoadStrCouldNotOpenSave), true);
         return false;
     }
 
@@ -2281,7 +2462,7 @@ static bool MikuPan_RmlSaveLoadWrite(const std::filesystem::path& path)
     output.close();
     if (!output)
     {
-        MikuPan_RmlSaveLoadSetStatus("Could not write the save file.", true);
+        MikuPan_RmlSaveLoadSetStatus(MikuPan_RmlSaveLoadTr(kSaveLoadStrCouldNotWriteSave), true);
         return false;
     }
 
@@ -2316,13 +2497,13 @@ static bool MikuPan_RmlSaveLoadWrite(const std::filesystem::path& path)
 
     MikuPan_RmlSaveLoadBuildList();
     MikuPan_RmlSaveLoadSyncSelection(true);
-    MikuPan_RmlSaveLoadSetStatus("Save data updated.", false);
+    MikuPan_RmlSaveLoadSetStatus(MikuPan_RmlSaveLoadTr(kSaveLoadStrSaveDataUpdated), false);
     g_save_load.dialog_mode = MikuPanSaveLoadDialogMode::SaveComplete;
     g_save_load.confirm_entry = -1;
     g_save_load.confirm_selection = 0;
     if (g_save_load.confirm_message != nullptr)
     {
-        g_save_load.confirm_message->SetInnerRML("Save Complete.");
+        g_save_load.confirm_message->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrSaveComplete));
     }
     MikuPan_RmlSaveLoadSyncConfirm();
     return true;
@@ -2333,7 +2514,7 @@ static bool MikuPan_RmlSaveLoadRead(const MikuPanSaveEntry& entry)
     if (!g_save_load.mc_active || mc_ctrl.work_addr == nullptr
         || mc_game_size == 0)
     {
-        MikuPan_RmlSaveLoadSetStatus("Load system is not ready.", true);
+        MikuPan_RmlSaveLoadSetStatus(MikuPan_RmlSaveLoadTr(kSaveLoadStrLoadNotReady), true);
         return false;
     }
 
@@ -2341,7 +2522,7 @@ static bool MikuPan_RmlSaveLoadRead(const MikuPanSaveEntry& entry)
     const uintmax_t size = std::filesystem::file_size(entry.path, error);
     if (error || size == 0 || size > mc_game_size)
     {
-        MikuPan_RmlSaveLoadSetStatus("This save file has an invalid size.", true);
+        MikuPan_RmlSaveLoadSetStatus(MikuPan_RmlSaveLoadTr(kSaveLoadStrInvalidSize), true);
         return false;
     }
 
@@ -2349,7 +2530,7 @@ static bool MikuPan_RmlSaveLoadRead(const MikuPanSaveEntry& entry)
     std::ifstream input(entry.path, std::ios::binary);
     if (!input)
     {
-        MikuPan_RmlSaveLoadSetStatus("Could not open the save file.", true);
+        MikuPan_RmlSaveLoadSetStatus(MikuPan_RmlSaveLoadTr(kSaveLoadStrCouldNotOpenSave), true);
         return false;
     }
 
@@ -2357,7 +2538,7 @@ static bool MikuPan_RmlSaveLoadRead(const MikuPanSaveEntry& entry)
                static_cast<std::streamsize>(size));
     if (!input)
     {
-        MikuPan_RmlSaveLoadSetStatus("Could not read the save file.", true);
+        MikuPan_RmlSaveLoadSetStatus(MikuPan_RmlSaveLoadTr(kSaveLoadStrCouldNotReadSave), true);
         return false;
     }
 
@@ -2365,7 +2546,7 @@ static bool MikuPan_RmlSaveLoadRead(const MikuPanSaveEntry& entry)
     mc_ctrl.rw.size = static_cast<int>(size);
     if (mcSetLoadFile(mc_ctrl.work_addr, MC_FILE_GAMEDATA1) != 0)
     {
-        MikuPan_RmlSaveLoadSetStatus("The save file is corrupt.", true);
+        MikuPan_RmlSaveLoadSetStatus(MikuPan_RmlSaveLoadTr(kSaveLoadStrCorrupt), true);
         return false;
     }
 
@@ -2587,19 +2768,20 @@ void MikuPan_RmlSaveLoadOpenSave(int mission_flag)
     MikuPan_RmlSaveLoadScan();
     MikuPan_RmlSaveLoadBuildList();
     MikuPan_RmlSaveLoadSetStatus(
-        "Create a new save or select an existing save to replace.", false);
+        MikuPan_RmlSaveLoadTr(kSaveLoadStrSaveModeHint), false);
     if (g_save_load.title != nullptr)
     {
-        g_save_load.title->SetInnerRML("SAVE FILE");
+        g_save_load.title->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrSaveFile));
     }
     if (g_save_load.exit_label != nullptr)
     {
-        g_save_load.exit_label->SetInnerRML("Back: Y / Esc");
+        g_save_load.exit_label->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrBackHint));
     }
     MikuPan_RmlSaveLoadSetHidden(g_save_load.root, false);
     g_save_load.document->Show(Rml::ModalFlag::None, Rml::FocusFlag::None);
     g_save_load.document->PullToFront();
     MikuPan_RmlSaveLoadSyncSelection(true);
+    MikuPan_RmlSaveLoadApplyLanguage(sys_wrk.language);
 }
 
 void MikuPan_RmlSaveLoadOpenLoad(void)
@@ -2632,21 +2814,22 @@ void MikuPan_RmlSaveLoadOpenLoad(void)
     MikuPan_RmlSaveLoadBuildList();
     MikuPan_RmlSaveLoadSetStatus(
         g_save_load.entries.empty()
-            ? "No save files were found."
-            : "Select a save to continue.",
+            ? MikuPan_RmlSaveLoadTr(kSaveLoadStrLoadModeEmptyHint)
+            : MikuPan_RmlSaveLoadTr(kSaveLoadStrSelectToContinue),
         false);
     if (g_save_load.title != nullptr)
     {
-        g_save_load.title->SetInnerRML("LOAD FILE");
+        g_save_load.title->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrLoadFile));
     }
     if (g_save_load.exit_label != nullptr)
     {
-        g_save_load.exit_label->SetInnerRML("Back: Y / Esc");
+        g_save_load.exit_label->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrBackHint));
     }
     MikuPan_RmlSaveLoadSetHidden(g_save_load.root, false);
     g_save_load.document->Show(Rml::ModalFlag::None, Rml::FocusFlag::None);
     g_save_load.document->PullToFront();
     MikuPan_RmlSaveLoadSyncSelection(true);
+    MikuPan_RmlSaveLoadApplyLanguage(sys_wrk.language);
 }
 
 void MikuPan_RmlSaveLoadClose(void)
@@ -2809,7 +2992,7 @@ int MikuPan_RmlSaveLoadActivate(void)
         if (g_save_load.confirm_message != nullptr)
         {
             g_save_load.confirm_message->SetInnerRML(
-                "Create a new save file?");
+                MikuPan_RmlSaveLoadTr(kSaveLoadStrConfirmNewSave));
         }
         MikuPan_RmlSaveLoadSyncConfirm();
         return 1;
@@ -2829,12 +3012,12 @@ int MikuPan_RmlSaveLoadActivate(void)
         if (g_save_load.save_mode)
         {
             g_save_load.confirm_message->SetInnerRML(
-                "Replace this save?");
+                MikuPan_RmlSaveLoadTr(kSaveLoadStrConfirmReplace));
         }
         else
         {
             g_save_load.confirm_message->SetInnerRML(
-                "Load this save?");
+                MikuPan_RmlSaveLoadTr(kSaveLoadStrConfirmLoad));
         }
     }
     MikuPan_RmlSaveLoadSyncConfirm();
@@ -2894,6 +3077,40 @@ void MikuPan_RmlSaveLoadCapturePreview(void)
     {
         g_save_load.preview_pixels.clear();
     }
+}
+
+void MikuPan_RmlSaveLoadApplyLanguage(int language)
+{
+    if (!g_save_load.initialized)
+    {
+        return;
+    }
+
+    g_save_load.language = std::clamp(language, 0, 4);
+
+    if (g_save_load.title != nullptr)
+    {
+        g_save_load.title->SetInnerRML(MikuPan_RmlSaveLoadTr(
+            g_save_load.save_mode ? kSaveLoadStrSaveFile : kSaveLoadStrLoadFile));
+    }
+    if (g_save_load.exit_label != nullptr)
+    {
+        g_save_load.exit_label->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrBackHint));
+    }
+    if (g_save_load.confirm_no != nullptr)
+    {
+        if (Rml::Element* label = g_save_load.confirm_no->QuerySelector(".ff-prompt-button-label"))
+        {
+            label->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrNo));
+        }
+    }
+    if (Rml::Element* hint = MikuPan_RmlSaveLoadGetElement("save-load-controls"))
+    {
+        hint->SetInnerRML(MikuPan_RmlSaveLoadTr(kSaveLoadStrControlsHint));
+    }
+
+    MikuPan_RmlSaveLoadBuildList();
+    MikuPan_RmlSaveLoadSyncSelection(false);
 }
 
 }
