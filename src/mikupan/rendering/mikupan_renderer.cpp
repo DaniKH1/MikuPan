@@ -369,6 +369,11 @@ SDL_AppResult MikuPan_Init()
 
     info_log("Loaded video device: %s", SDL_GetGPUDeviceDriver(MikuPan_GPUGetDevice()));
 
+    if (!SDL_RaiseWindow(mikupan_render.window))
+    {
+        info_log("Unable to request window focus at startup: %s", SDL_GetError());
+    }
+
     return SDL_APP_CONTINUE;
 }
 

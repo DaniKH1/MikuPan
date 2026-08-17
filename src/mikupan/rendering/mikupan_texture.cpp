@@ -2,6 +2,7 @@
 #include "graphics/graph2d/message.h"
 #include "mikupan/gs/mikupan_gs_c.h"
 #include "mikupan/gs/mikupan_texture_manager_c.h"
+#include "mikupan/mikupan_config.h"
 #include "mikupan/mikupan_utils.h"
 #include "mikupan/ui/mikupan_ui.h"
 #include "mikupan_pipeline.h"
@@ -14,7 +15,11 @@
 #include <mikupan/io/mikupan_file.h>
 
 static MikuPan_TextureInfo *fnt_texture[6] = {0};
+static unsigned int original_fnt_texture_id[6] = {0};
+static unsigned int hd_fnt_texture_id[6] = {0};
 static MikuPan_TextureInfo *curr_fnt_texture = NULL;
+static int curr_fnt_texture_index = 0;
+static int hd_font_textures_enabled = 1;
 static MikuPan_TextureInfo g_photo_preview_texture = {0};
 static MikuPan_TextureInfo g_photo_base_preview_texture = {0};
 static MikuPan_TextureInfo g_photo_negative_source_texture = {0};
@@ -39,6 +44,32 @@ static MikuPan_PhotoDebugInfo g_photo_debug = {
 MikuPan_TextureInfo *MikuPan_GetCurrentFontTexture(void)
 {
     return curr_fnt_texture;
+}
+
+static void MikuPan_ApplyFontTexture(int fnt)
+{
+    if (fnt < 0 || fnt >= 6 || fnt_texture[fnt] == NULL)
+    {
+        curr_fnt_texture = NULL;
+        return;
+    }
+
+    curr_fnt_texture_index = fnt;
+
+    fnt_texture[fnt]->id =
+        hd_font_textures_enabled && hd_fnt_texture_id[fnt] != 0
+            ? hd_fnt_texture_id[fnt]
+            : original_fnt_texture_id[fnt];
+
+    curr_fnt_texture = fnt_texture[fnt];
+}
+
+void MikuPan_SetHdFontTexturesEnabled(int enabled)
+{
+    hd_font_textures_enabled = enabled ? 1 : 0;
+
+    MikuPan_ApplyFontTexture(curr_fnt_texture_index);
+    MikuPan_ResetGLBindCache();
 }
 
 const MikuPan_PhotoDebugInfo *MikuPan_GetPhotoDebugInfo(void)
@@ -135,13 +166,30 @@ void MikuPan_TextureShutdown(void)
     {
         if (fnt_texture[i] != NULL)
         {
-            MikuPan_GPUReleaseTexture(fnt_texture[i]->id);
+            if (original_fnt_texture_id[i] != 0)
+            {
+                MikuPan_GPUReleaseTexture(original_fnt_texture_id[i]);
+            }
+
+            if (
+                hd_fnt_texture_id[i] != 0 &&
+                hd_fnt_texture_id[i] != original_fnt_texture_id[i]
+            )
+            {
+                MikuPan_GPUReleaseTexture(hd_fnt_texture_id[i]);
+            }
+
             free(fnt_texture[i]);
+
             fnt_texture[i] = NULL;
         }
+
+        original_fnt_texture_id[i] = 0;
+        hd_fnt_texture_id[i] = 0;
     }
 
     curr_fnt_texture = NULL;
+    curr_fnt_texture_index = 0;
 
     if (g_photo_preview_texture.id != 0)
     {
@@ -286,15 +334,39 @@ void MikuPan_SetupFntTexture()
     // ever, so a font reload after a language change actually reaches the GPU.
     for (int i = 0; i < 6; i++)
     {
-        fnt_texture[i] = MikuPan_CreateGLTexture((sceGsTex0*) &fntdat[i].tex0);
+        if (fnt_texture[i] == NULL)
+        {
+            fnt_texture[i] = MikuPan_CreateGLTexture((sceGsTex0*) &fntdat[i].tex0);
+
+            if (fnt_texture[i] == NULL)
+            {
+                continue;
+            }
+
+            original_fnt_texture_id[i] = fnt_texture[i]->id;
+
+            std::string texture_path = std::format("./resources/fonts/hd_texture_font_{}.png", i);
+
+            if (MikuPan_GetFileSize(texture_path.c_str()) != 0)
+            {
+                SDL_Surface* surface = SDL_LoadPNG(texture_path.c_str());
+
+                if (surface != NULL)
+                {
+                    hd_fnt_texture_id[i] =  MikuPan_GPUCreateTextureFromSurface(surface);
+
+                    SDL_DestroySurface(surface);
+                }
+            }
+        }
     }
 
-    curr_fnt_texture = fnt_texture[0];
+    MikuPan_SetHdFontTexturesEnabled(mikupan_configuration.renderer.hd_font_textures);
 }
 
 void MikuPan_SetFontTexture(int fnt)
 {
-    curr_fnt_texture = fnt_texture[fnt];
+    MikuPan_ApplyFontTexture(fnt);
 }
 
 void MikuPan_UpdatePhotoPreviewTextureRGBA(int width, int height,
