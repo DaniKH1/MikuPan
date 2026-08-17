@@ -1063,6 +1063,15 @@ void MikuPan_UiSettingsRender(void)
 
             igSeparatorText("Graphics");
 
+            bool hd_font_textures = mikupan_configuration.renderer.hd_font_textures != 0;
+
+            if (igCheckbox("HD Font Textures", &hd_font_textures))
+            {
+                mikupan_configuration.renderer.hd_font_textures = hd_font_textures ? 1 : 0;
+
+                MikuPan_SetHdFontTexturesEnabled(hd_font_textures);
+            }
+
             MikuPan_UiGpuBackendCombo();
 
             if (strcmp(SDL_GetPlatform(), "Android") == 0)
