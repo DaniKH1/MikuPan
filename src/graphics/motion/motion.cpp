@@ -122,11 +122,11 @@ void motInitMultiEnemyAnm(u_int *anm_p, u_int mdl_no, u_int anm_no, u_int num)
 
 void motInitEnemyMdl(u_int *mdl_p, u_int mdl_no)
 {
-    if (mdl_no == 55)
+    if (mdl_no == M055_SYOUALL)
     {
-        motInitMultiEnemyMdl(mdl_p, 42);
+        motInitMultiEnemyMdl(mdl_p, M042_SYOUKI2);
     }
-    else if (mdl_no > 66)
+    else if (mdl_no >= M900_ONNRYOU)
     {
         motInitFlyMdl(mdl_p, mdl_no);
     }
@@ -182,9 +182,9 @@ void motInitMultiEnemyMdl(u_int *mdl_addr, u_int mdl_no)
 
 void motInitFlyMdl(u_int *mdl_p, u_int mdl_no)
 {
-    if (mdl_no == 67)
+    if (mdl_no == M900_ONNRYOU)
     {
-        motInitMultiFlyMdl(mdl_p, 67);
+        motInitMultiFlyMdl(mdl_p, M900_ONNRYOU);
     }
     else
     {

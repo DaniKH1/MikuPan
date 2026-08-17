@@ -204,6 +204,9 @@ extern MSN_LOAD_DAT load_dat_wrk[40];
 extern MSN_TITLE_WRK mttl_wrk;
 extern EVENT_LOAD_WRK ev_load_wrk;
 
+void LoadUncoverBegin(void);
+void LoadUncoverCtrl(void);
+
 void MissionTitleInit(int msn_no);
 int MissionTitleMain(int msn_no);
 int MissionTitleLoad(int msn_no);

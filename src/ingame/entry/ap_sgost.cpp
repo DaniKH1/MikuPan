@@ -215,7 +215,7 @@ int SettleGhostLoadTwoSize()
     break;
     case 1:
         DeadGhostLoadDel();
-        motReleaseAniMdlBuf(30, (u_int *)MikuPan_GetHostPointer(TOUSHU_ANIM_MODEL_ADDRESS_1));
+        motReleaseAniMdlBuf(A042_SYOUKIA, (u_int *)MikuPan_GetHostPointer(TOUSHU_ANIM_MODEL_ADDRESS_1));
         LoadReq(M037_TOUSHU_MDL, TOUSHU_MODEL_ADDRESS_1);
         LoadReq(M900_ONNRYOU_MPK, ONNRYOU_MPK_ADDRESS_1);
 
@@ -224,9 +224,9 @@ int SettleGhostLoadTwoSize()
     case 2:
         if (IsLoadEndAll() != 0)
         {
-            motInitEnemyMdl((u_int *)MikuPan_GetHostPointer(TOUSHU_MODEL_ADDRESS_1), 37);
-            motInitEnemyMdl((u_int *)MikuPan_GetHostPointer(ONNRYOU_MPK_ADDRESS_1), 67);
-            LoadEneDmgTex(37, (u_int *)MikuPan_GetHostPointer(ENEMY_DAMAGE_ADDRESS_2));
+            motInitEnemyMdl((u_int *)MikuPan_GetHostPointer(TOUSHU_MODEL_ADDRESS_1), M037_TOUSHU);
+            motInitEnemyMdl((u_int *)MikuPan_GetHostPointer(ONNRYOU_MPK_ADDRESS_1), M900_ONNRYOU);
+            LoadEneDmgTex(M037_TOUSHU, (u_int *)MikuPan_GetHostPointer(ENEMY_DAMAGE_ADDRESS_2));
             LoadReq(M037_TOUSHU_ANM, TOUSHU_ANIM_MODEL_ADDRESS_1);
 
             sgst_wrk.load_mode = 3;
@@ -235,7 +235,7 @@ int SettleGhostLoadTwoSize()
     case 3:
         if (IsLoadEndAll() != 0)
         {
-            motInitEnemyAnm((u_int *)MikuPan_GetHostPointer(TOUSHU_ANIM_MODEL_ADDRESS_1), 37, 25);
+            motInitEnemyAnm((u_int *)MikuPan_GetHostPointer(TOUSHU_ANIM_MODEL_ADDRESS_1), M037_TOUSHU, A037_TOUSHU);
             SeFileLoadAndSet(SG037_TOUSHU_BD, 16);
 
             sgst_wrk.load_mode = 4;

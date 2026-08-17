@@ -26,6 +26,18 @@
 /// meshes are far under the old fixed 4 MiB), so the budget tracks real usage.
 #define MIKUPAN_MESHCACHE_BUF_INITIAL (4 * 1024)
 
+static unsigned int g_insert_counter = 0;
+
+unsigned int MikuPan_MeshCache_GetInsertCount(void)
+{
+    return g_insert_counter;
+}
+
+void MikuPan_MeshCache_ResetInsertCounter(void)
+{
+    g_insert_counter = 0;
+}
+
 static MikuPan_MeshCacheEntry *g_buckets[MIKUPAN_MESHCACHE_BUCKETS] = {0};
 static int g_initialised = 0;
 static int g_enabled = 1;
@@ -298,6 +310,7 @@ MikuPan_MeshCacheEntry *MikuPan_MeshCache_Insert(
 
     e->last_used = ++g_cache_tick;
     g_cache_entries++;
+    g_insert_counter++;
 
     /// The cached bind shadows in mikupan_pipeline.c are now stale — anything
     /// the caller does next will go through MikuPan_BindVAO / BindBufferCached
@@ -310,6 +323,7 @@ MikuPan_MeshCacheEntry *MikuPan_MeshCache_Insert(
 
     evict_to_budget(0);
 
+
     return e;
 }
 
@@ -317,20 +331,24 @@ void MikuPan_MeshCache_UploadVbo(MikuPan_MeshCacheEntry *entry,
                                  int idx, long long size, const void *data)
 {
     if (entry == NULL || idx < 0 || idx >= entry->num_vbos || size <= 0) return;
+
     MikuPan_GPUUploadBuffer(entry->vbo[idx], (unsigned int)size, data);
     account_buffer(entry, idx, size);
     evict_to_budget(0);
     MikuPan_ResetGLBindCache();
+
 }
 
 void MikuPan_MeshCache_UploadIbo(MikuPan_MeshCacheEntry *entry,
                                  long long size, const void *data)
 {
     if (entry == NULL || size <= 0) return;
+
     MikuPan_GPUUploadBuffer(entry->ibo, (unsigned int)size, data);
     account_buffer(entry, 4, size);
     evict_to_budget(0);
     MikuPan_ResetGLBindCache();
+
 }
 
 static unsigned long long meshcache_hash(const void *data, long long size)
@@ -376,6 +394,7 @@ void MikuPan_MeshCache_StreamVbo(MikuPan_MeshCacheEntry *entry,
     entry->stream_valid[idx] = 1;
     evict_to_budget(0);
     MikuPan_ResetGLBindCache();
+
 }
 
 void MikuPan_MeshCache_InvalidateSgd(void *sgd_top)
@@ -398,6 +417,7 @@ void MikuPan_MeshCache_InvalidateSgd(void *sgd_top)
             }
         }
     }
+
     MikuPan_ResetGLBindCache();
 }
 

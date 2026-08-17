@@ -3,7 +3,10 @@
 #include "enums.h"
 #include "ev_spcl.h"
 #include "graphics/graph2d/effect_ene.h"
+#include "graphics/graph2d/effect_scr.h"
+#include "graphics/graph2d/effect_sub.h"
 #include "graphics/graph2d/tim2.h"
+#include "mikupan/rendering/mikupan_meshcache.h"
 #include "graphics/motion/mdlwork.h"
 #include "ingame/entry/ap_dgost.h"
 #include "ingame/entry/ap_fgost.h"
@@ -180,6 +183,50 @@ MSN_LOAD_DAT load_dat_wrk[40] = {0};
 MSN_TITLE_WRK mttl_wrk = {0};
 EVENT_LOAD_WRK ev_load_wrk = {0};
 
+#define LOAD_UNCOVER_MAX_FRAMES 90
+#define LOAD_UNCOVER_SETTLED_FRAMES 3
+
+static int load_uncover_pending = 0;
+static int load_uncover_frames = 0;
+static int load_uncover_settled = 0;
+
+void LoadUncoverBegin(void)
+{
+    load_uncover_pending = 1;
+    load_uncover_frames = 0;
+    load_uncover_settled = 0;
+
+    MikuPan_MeshCache_ResetInsertCounter();
+}
+
+void LoadUncoverCtrl(void)
+{
+    if (load_uncover_pending == 0)
+    {
+        return;
+    }
+
+    if (MikuPan_MeshCache_GetInsertCount() != 0)
+    {
+        MikuPan_MeshCache_ResetInsertCounter();
+        load_uncover_settled = 0;
+    }
+    else
+    {
+        load_uncover_settled++;
+    }
+
+    load_uncover_frames++;
+
+    if (load_uncover_settled >= LOAD_UNCOVER_SETTLED_FRAMES ||
+        load_uncover_frames >= LOAD_UNCOVER_MAX_FRAMES)
+    {
+        load_uncover_pending = 0;
+
+        SetBlackIn2(0x3c);
+    }
+}
+
 void MissionTitleInit(int msn_no)
 {
     DataLoadWrkInit();
@@ -277,6 +324,9 @@ int MissionTitleMain(int msn_no)
         break;
   
         case MSN_TITLE_MODE_END:
+            SetParam(0x80, 1, 0, 0, 0, 0);
+            LoadUncoverBegin();
+
             ingame_wrk.stts &= 0x80 | 0x40 | 0x10 | 0x4 | 0x2 | 0x1;
             return 1;
         break;
@@ -507,7 +557,7 @@ void MissionDataLoadAfterInit(MSN_LOAD_DAT* dat)
             break;
         
         case 11:
-            ItemLoadAfterInit(dat->file_no - 944, MikuPan_GetHostAddress(dat->addr));
+            ItemLoadAfterInit(dat->file_no - I000_PLAY_CAMERA1_SGD, MikuPan_GetHostAddress(dat->addr));
             break;
 
         default:

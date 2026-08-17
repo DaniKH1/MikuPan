@@ -1169,7 +1169,7 @@ void acsMoveCloth(sceVu0FVECTOR *vtx, CLOTH_CTRL *cloth, SgCOORDUNIT *cp, COLLIS
             u_short id0;
             u_short id1;
 
-            if (mdl_no == 15)
+            if (mdl_no == M015_KOMUSO)
             {
                 id0 = cloth->h - 1;
                 id1 = cloth->h - 2;

@@ -1199,7 +1199,7 @@ void SceneDrawManMdl(SCENE_CTRL *sc, u_int mdl_id)
 
     ManmdlSetAlpha(base_p, sam->mdl_alpha);
 
-    if (sam->mdl_no != 30 && sam->mdl_no != 60)
+    if (sam->mdl_no != M030_SAKKAGE && sam->mdl_no != M060_TENAKAGE)
     {
         SgSortUnitKind(base_p, -1);
 
@@ -1269,18 +1269,18 @@ void SceneDrawManShadow(SCENE_CTRL *sc, SCN_ANM_MDL *sam)
 
     dir[1] = (0.0f < dir[1]) ? -dir[1] : dir[1];
 
-    if (sam->mdl_no == 60)
+    if (sam->mdl_no == M060_TENAKAGE)
     {
         dir[1] += -0.5f;
     }
 
-    if (sam->mdl_no == 30)
+    if (sam->mdl_no == M030_SAKKAGE)
     {
         shdw_addr = sam->mdl_anm.base_p;
         bbox_addr = m030_bbox;
         born_no = 19;
     }
-    else if (sam->mdl_no == 60)
+    else if (sam->mdl_no == M060_TENAKAGE)
     {
         shdw_addr = sam->mdl_anm.base_p;
         bbox_addr = m060_bbox;
@@ -1611,11 +1611,11 @@ void SceneSetManMdlTexOffset(SCENE_CTRL *sc)
         {
             sc->man_mdl_tex[i] = 0;
         }
-        else if (sc->man_mdl[i].mdl_no == 30)
+        else if (sc->man_mdl[i].mdl_no == M030_SAKKAGE)
         {
             sc->man_mdl_tex[i] = 0;
         }
-        else if (sc->man_mdl[i].mdl_no == 60)
+        else if (sc->man_mdl[i].mdl_no == M060_TENAKAGE)
         {
             sc->man_mdl_tex[i] = 0;
         }

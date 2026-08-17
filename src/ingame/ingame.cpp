@@ -627,6 +627,8 @@ void InGameMain()
         GameTimeCtrl();
     }
     
+    LoadUncoverCtrl();
+
     gra2dDraw(GRA2D_CALL_IG3);
     AdpcmMapCtrl();
     

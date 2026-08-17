@@ -41,7 +41,7 @@ void ManmdlSetAlpha(void *sgd_top, u_char alpha)
 
 char motCheckTrRateMdl(u_int mdl_no)
 {
-    if (mdl_no == 32 || mdl_no == 34 || mdl_no == 35 || mdl_no == 36)
+    if (mdl_no == M032_SHINKAN1 || mdl_no == M034_SHINKAN2 || mdl_no == M035_SHINKAN3 || mdl_no == M036_SHINKAN4)
     {
         return 1;
     }
@@ -354,9 +354,9 @@ void SetEneTexture(u_int work_id)
 
             switch (mdl_no)
             {
-            case 42:
-            case 43:
-            case 44:
+            case M042_SYOUKI2:
+            case M043_SYOUKI3:
+            case M044_SYOUKI4:
 
                 if (i == 0)
                 {
@@ -365,9 +365,9 @@ void SetEneTexture(u_int work_id)
                 else if (i == 1)
                 {
                     if (
-                        ene_vram_ctrl[0].mdl_no == 42 ||
-                        ene_vram_ctrl[0].mdl_no == 43 ||
-                        ene_vram_ctrl[0].mdl_no == 44
+                        ene_vram_ctrl[0].mdl_no == M042_SYOUKI2 ||
+                        ene_vram_ctrl[0].mdl_no == M043_SYOUKI3 ||
+                        ene_vram_ctrl[0].mdl_no == M044_SYOUKI4
                     )
                     {
                         ene_vram_ctrl[i].offset = 0x2fbc;
