@@ -1745,6 +1745,15 @@ void SetETIM2File(int64_t addr)
 void SetFTIM2File(int64_t addr)
 {
     addr = MikuPan_GetHostAddress(addr);
+
+#ifdef BUILD_EU_VERSION
+    // Re-parse and re-upload the font if the language changed since the last upload.
+    if (MikuPan_FontTexNeedsRebuild())
+    {
+        MakeFontTexSendPacket();
+    }
+#endif
+
     CallFontTexSendPacket();
 }
 

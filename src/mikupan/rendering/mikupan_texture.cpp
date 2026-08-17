@@ -282,27 +282,11 @@ void MikuPan_SetTexture(sceGsTex0 *tex0)
 
 void MikuPan_SetupFntTexture()
 {
+    // Re-download every bank from GS memory each time, instead of only once
+    // ever, so a font reload after a language change actually reaches the GPU.
     for (int i = 0; i < 6; i++)
     {
-        if (fnt_texture[i] == NULL)
-        {
-            std::string texture_path = std::format("./resources/fonts/hd_texture_font_{}.png", i);
-            fnt_texture[i] = MikuPan_CreateGLTexture((sceGsTex0*) &fntdat[i].tex0);
-            continue;
-
-            if (MikuPan_GetFileSize(texture_path.c_str()) == 0)
-            {
-                continue;
-            }
-
-            fnt_texture[i] = MikuPan_CreateGLTexture((sceGsTex0*) &fntdat[i].tex0);
-
-            SDL_Surface* surface = SDL_LoadPNG(texture_path.c_str());
-
-            fnt_texture[i]->id = MikuPan_GPUCreateTextureFromSurface(surface);
-
-            SDL_DestroySurface(surface);
-        }
+        fnt_texture[i] = MikuPan_CreateGLTexture((sceGsTex0*) &fntdat[i].tex0);
     }
 
     curr_fnt_texture = fnt_texture[0];

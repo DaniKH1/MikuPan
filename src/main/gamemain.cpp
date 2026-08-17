@@ -26,6 +26,12 @@ int init_load_id = 0;
 int64_t init_load_adr = 0;
 int init_load_size = 0;
 
+#ifdef BUILD_EU_VERSION
+// Dedicated load id for the font reload, since init_load_id gets overwritten
+// by whichever LoadReq*() call happens to run right after it.
+static int s_font_load_id = -1;
+#endif
+
 int GameInit()
 {
     if (GameInitLoad())
@@ -40,6 +46,9 @@ int GameInit()
 void GameMain()
 {
 #ifdef BUILD_EU_VERSION
+    // Picks up a pending font-language reload once it finishes, regardless of screen.
+    MikuPan_FontTexPollPendingReload();
+
     switch (sys_wrk.game_mode)
     {
     case GAME_MODE_INIT:
@@ -83,7 +92,7 @@ void GameMain()
     case GAME_MODE_LANGUAGE:
         if (LanguageSelectMain())
         {
-            init_load_id = LoadReqLanguage(FNT001_E_PK2, 0x1e30000);
+            init_load_id = MikuPan_RequestFontReload(FNT001_E_PK2, 0x1e30000);
             sys_wrk.game_mode = GAME_MODE_FONT_LOAD_WAIT;
         }
     break;
@@ -94,7 +103,7 @@ void GameMain()
         }
     break;
     case GAME_MODE_MSG_LOAD:
-        if (IsLoadEnd(init_load_id))
+        if (IsLoadEnd(init_load_id) && IsLoadEnd(s_font_load_id))
         {
             sys_wrk.game_mode = GAME_MODE_OUTGAME;
         }
@@ -108,7 +117,7 @@ void GameMain()
         {
             mcEnd();
             sys_wrk.game_mode = GAME_MODE_MSG_LOAD;
-            init_load_id = LoadReqLanguage(FNT001_E_PK2, 0x1e30000);
+            s_font_load_id = MikuPan_RequestFontReload(FNT001_E_PK2, 0x1e30000);
             init_load_id = LoadReqLanguage(IG_MSG_E_OBJ, 0x84a000);
         }
     break;
@@ -178,7 +187,7 @@ int GameInitLoad()
         sys_wrk.load_mode = INGAME_INIT_LOAD_EFCT;
     case INGAME_INIT_LOAD_EFCT:
 #ifdef BUILD_EU_VERSION
-        init_load_id = LoadReqLanguage(FNT001_E_PK2, FontTextAddress);
+        s_font_load_id = MikuPan_RequestFontReload(FNT001_E_PK2, FontTextAddress);
 #else
         init_load_id = LoadReq(FNT001_PK2, FontTextAddress);
 #endif
@@ -186,7 +195,11 @@ int GameInitLoad()
         sys_wrk.load_mode = INGAME_INIT_WAIT_EFCT;
     break;
     case INGAME_INIT_WAIT_EFCT:
+#ifdef BUILD_EU_VERSION
+        if (!IsLoadEnd(init_load_id) || !IsLoadEnd(s_font_load_id))
+#else
         if (!IsLoadEnd(init_load_id))
+#endif
         {
             return 0;
         }
