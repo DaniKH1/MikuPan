@@ -399,5 +399,9 @@ bool MikuPan_IsFiniteFloat(float value)
 
 int MikuPan_GetUiLanguage(void)
 {
+#ifdef BUILD_EU_VERSION
     return MikuPan_ClampInt(sys_wrk.language, 0, 4);
+#else
+    return 0;
+#endif
 }

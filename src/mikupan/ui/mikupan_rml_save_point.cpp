@@ -3,6 +3,7 @@
 #include "enums.h"
 #include "main/glob.h"
 #include "mikupan/io/mikupan_file.h"
+#include "mikupan/mikupan_utils.h"
 
 #include "RmlUi/Core.h"
 #include "RmlUi/Core/ElementDocument.h"
@@ -558,7 +559,7 @@ int MikuPan_RmlSavePointOpen(int availability_mode,
     }
 
     MikuPan_RmlSavePointSyncSelection();
-    MikuPan_RmlSavePointApplyLanguage(sys_wrk.language);
+    MikuPan_RmlSavePointApplyLanguage(MikuPan_GetUiLanguage());
     return 1;
 }
 

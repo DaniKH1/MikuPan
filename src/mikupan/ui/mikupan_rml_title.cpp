@@ -2,6 +2,7 @@
 
 #include "main/glob.h"
 #include "mikupan/io/mikupan_file.h"
+#include "mikupan/mikupan_utils.h"
 
 #include "mikupan_version.h"
 
@@ -474,7 +475,7 @@ bool MikuPan_RmlTitleInit(Rml::Context* context)
     }
 
     g_title.initialized = true;
-    MikuPan_RmlTitleApplyLanguage(sys_wrk.language);
+    MikuPan_RmlTitleApplyLanguage(MikuPan_GetUiLanguage());
     return true;
 }
 

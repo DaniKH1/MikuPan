@@ -13,6 +13,7 @@
 #include "mc/mc_exec.h"
 #include "mc/mc_main.h"
 #include "mikupan/mikupan_memory.h"
+#include "mikupan/mikupan_utils.h"
 #include "mikupan/mikupan_screenshot.h"
 #include "mikupan/io/mikupan_file.h"
 #include "os/eeiop/cdvd/eecdvd.h"
@@ -2781,7 +2782,7 @@ void MikuPan_RmlSaveLoadOpenSave(int mission_flag)
     g_save_load.document->Show(Rml::ModalFlag::None, Rml::FocusFlag::None);
     g_save_load.document->PullToFront();
     MikuPan_RmlSaveLoadSyncSelection(true);
-    MikuPan_RmlSaveLoadApplyLanguage(sys_wrk.language);
+    MikuPan_RmlSaveLoadApplyLanguage(MikuPan_GetUiLanguage());
 }
 
 void MikuPan_RmlSaveLoadOpenLoad(void)
@@ -2829,7 +2830,7 @@ void MikuPan_RmlSaveLoadOpenLoad(void)
     g_save_load.document->Show(Rml::ModalFlag::None, Rml::FocusFlag::None);
     g_save_load.document->PullToFront();
     MikuPan_RmlSaveLoadSyncSelection(true);
-    MikuPan_RmlSaveLoadApplyLanguage(sys_wrk.language);
+    MikuPan_RmlSaveLoadApplyLanguage(MikuPan_GetUiLanguage());
 }
 
 void MikuPan_RmlSaveLoadClose(void)

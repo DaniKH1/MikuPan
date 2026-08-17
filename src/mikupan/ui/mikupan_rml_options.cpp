@@ -3,6 +3,7 @@
 #include "main/glob.h"
 #include "mikupan/ui/mikupan_ui.h"
 #include "mikupan/mikupan_config.h"
+#include "mikupan/mikupan_utils.h"
 #include "mikupan/io/mikupan_file.h"
 #include "mikupan/io/mikupan_controller.h"
 #include "mikupan/gameplay/mikupan_item_icon_hud.h"
@@ -6246,7 +6247,7 @@ bool MikuPan_RmlOptionsInit(Rml::Context* context)
     }
 
     g_rml.initialized = true;
-    MikuPan_RmlOptionsApplyLanguage(sys_wrk.language);
+    MikuPan_RmlOptionsApplyLanguage(MikuPan_GetUiLanguage());
     return true;
 }
 

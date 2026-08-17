@@ -2,6 +2,7 @@
 
 #include "main/glob.h"
 #include "mikupan/io/mikupan_file.h"
+#include "mikupan/mikupan_utils.h"
 
 #include "RmlUi/Core.h"
 #include "RmlUi/Core/ElementDocument.h"
@@ -478,7 +479,7 @@ bool MikuPan_RmlModeSelectInit(Rml::Context* context)
     }
 
     g_mode_select.initialized = true;
-    MikuPan_RmlModeSelectApplyLanguage(sys_wrk.language);
+    MikuPan_RmlModeSelectApplyLanguage(MikuPan_GetUiLanguage());
     return true;
 }
 
