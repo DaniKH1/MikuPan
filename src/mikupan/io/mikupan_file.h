@@ -41,6 +41,11 @@ u_char MikuPan_OpenFile(const char *filename, void *buffer, int size);
 u_char MikuPan_SaveFile(const char *filename, void *buffer, int size);
 bool MikuPan_ResolveCdPath(const char* path, char* buffer, size_t buffer_size);
 bool MikuPan_ResolveBasePath(const char* path, char* buffer, size_t buffer_size);
+/// Directory that contains the bundled `resources/` folder, with a trailing
+/// separator. Wraps SDL_GetBasePath() and corrects it on platforms where that
+/// does not point at the executable's own directory (see the implementation
+/// for the macOS case). Never returns NULL.
+const char *MikuPan_GetBaseDirectory(void);
 u_char MikuPan_ReadFile(const char *filename, void *buffer, int size);
 u_char MikuPan_WriteFile(const char *filename, const void *buffer, int size);
 u_char MikuPan_CreateFolder(const char *folder);
