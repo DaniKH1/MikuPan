@@ -165,8 +165,5 @@ On Android 11 and newer, normal file managers usually cannot write to
 like `Documents/MikuPan`, then use MikuPan's in-game folder picker to grant
 access to that folder.
 
-## OSX
-Not yet supported due to lack of hardware to test it, but it should be easily supported.
-
 # Special Thanks
 Thank you to prinsep for making the logo!
