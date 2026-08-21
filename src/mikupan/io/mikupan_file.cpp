@@ -11,6 +11,8 @@
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_messagebox.h>
+#include <SDL3/SDL_platform.h>
+#include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_timer.h>
 #include <algorithm>
 #include <filesystem>
@@ -46,7 +48,6 @@ extern "C" const char *MikuPan_GetBaseDirectory(void)
     const char *base = SDL_GetBasePath();
     cached = (base != nullptr && base[0] != '\0') ? base : "./";
 
-#ifdef __APPLE__
     /* On macOS SDL_GetBasePath() returns the main bundle's resource path.
      * That is right for a .app bundle, but for a bare executable (what the
      * CMake build produces) it comes back as "<exe dir>/Resources/", a
@@ -55,25 +56,27 @@ extern "C" const char *MikuPan_GetBaseDirectory(void)
      * asset lookup turns into "<exe dir>/resources/resources/..." and fails.
      * Detect that by probing for a directory that must exist under a valid
      * base and, if it is missing, fall back to the parent of "Resources/". */
-    namespace fs = std::filesystem;
-    std::error_code ec;
-    const fs::path probe_dir = fs::path("resources") / "shaders";
-    if (!fs::is_directory(fs::path(cached) / probe_dir, ec))
+    if (SDL_strcmp(SDL_GetPlatform(), "macOS") == 0)
     {
-        /* "<dir>/Resources/" -> parent_path() twice strips the trailing
-         * separator component and then "Resources". */
-        const fs::path parent =
-            fs::path(cached).parent_path().parent_path();
-        if (!parent.empty() && fs::is_directory(parent / probe_dir, ec))
+        namespace fs = std::filesystem;
+        std::error_code ec;
+        const fs::path probe_dir = fs::path("resources") / "shaders";
+        if (!fs::is_directory(fs::path(cached) / probe_dir, ec))
         {
-            cached = parent.string();
-            if (cached.back() != '/')
+            /* "<dir>/Resources/" -> parent_path() twice strips the trailing
+             * separator component and then "Resources". */
+            const fs::path parent =
+                fs::path(cached).parent_path().parent_path();
+            if (!parent.empty() && fs::is_directory(parent / probe_dir, ec))
             {
-                cached += '/';
+                cached = parent.string();
+                if (cached.back() != '/')
+                {
+                    cached += '/';
+                }
             }
         }
     }
-#endif
 
     return cached.c_str();
 }
