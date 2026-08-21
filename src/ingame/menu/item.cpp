@@ -20,6 +20,7 @@
 #include "ingame/menu/item_get.h"
 #include "main/glob.h"
 #include "mikupan/mikupan_memory.h"
+#include "mikupan/io/mikupan_controller.h"
 #include "mikupan/mikupan_utils.h"
 #include "mikupan/rendering/mikupan_renderer.h"
 #include "mikupan/ui/mikupan_ui.h"
@@ -57,6 +58,9 @@ static void PutSpriteYWFlipX(u_short label, float pos_x, float pos_y, float rot,
 static void BgFusumaWideSideYW(int rgb, float pos_x, float alpha, int pri, float scl_x, float scl_y);
 static void BgFusumaFadeQuad(float x0, float x1, float a0, float a1);
 static float BgFusumaAlpha(float alpha);
+static void MikuPan_ItemListMouseInput(void);
+static void MikuPan_ItemYesNoMouseInput(void);
+
 
 #include "data/item_use_dat.h" // ITEM_USE_DAT item_use_dat[70];
 
@@ -207,6 +211,128 @@ void FilmPossessionExp()
     }
 }
 
+
+static void MikuPan_ItemListMouseInput(void)
+{
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+
+    for (int row = 0; row < 6; row++)
+    {
+        const int item = iew.itm_lst_strt + row;
+        if (item >= ig_menu_wrk.item_num
+            || !MikuPan_LegacyMouseHit(44.0f, 107.0f + row * 34.0f, 274.0f, 36.0f))
+        {
+            continue;
+        }
+
+        if (mouse.moved && ig_menu_wrk.csr[1] != item)
+        {
+            ig_menu_wrk.csr[1] = item;
+            SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 1);
+        }
+        if (mouse.left_pressed)
+        {
+            ig_menu_wrk.csr[1] = item;
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+        }
+        break;
+    }
+
+    int wheel = mouse.wheel_y;
+    while (wheel != 0 && ig_menu_wrk.item_num > 0)
+    {
+        if (wheel > 0)
+        {
+            if (ig_menu_wrk.csr[1] > 0)
+            {
+                ig_menu_wrk.csr[1]--;
+                if (ig_menu_wrk.csr[1] < iew.itm_lst_strt)
+                {
+                    iew.itm_lst_strt = ig_menu_wrk.csr[1];
+                }
+            }
+            wheel--;
+        }
+        else
+        {
+            if (ig_menu_wrk.csr[1] + 1 < ig_menu_wrk.item_num)
+            {
+                ig_menu_wrk.csr[1]++;
+                if (ig_menu_wrk.csr[1] > iew.itm_lst_strt + 5)
+                {
+                    iew.itm_lst_strt = ig_menu_wrk.csr[1] - 5;
+                }
+            }
+            wheel++;
+        }
+    }
+
+    if (mouse.wheel_y != 0)
+    {
+        SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 1);
+    }
+    if (mouse.right_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+    }
+}
+
+static void MikuPan_ItemMessageMouseInput(void)
+{
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+
+    if (mouse.left_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+    }
+    else if (mouse.right_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+    }
+}
+
+static void MikuPan_ItemYesNoMouseInput(void)
+{
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+
+    for (int i = 0; i < 2; i++)
+    {
+        if (!MikuPan_LegacyMouseHit(156.0f + i * 132.0f, 356.0f, 120.0f, 56.0f))
+        {
+            continue;
+        }
+
+        if (mouse.moved && ig_menu_wrk.csr[2] != i)
+        {
+            ig_menu_wrk.csr[2] = i;
+            SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 1);
+        }
+        if (mouse.left_pressed)
+        {
+            ig_menu_wrk.csr[2] = i;
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+        }
+        break;
+    }
+
+    if (mouse.right_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+    }
+}
+
 void IngameMenuItem()
 {
     IngameMenuItemDisp();
@@ -225,6 +351,8 @@ void IngameMenuItem()
     }
     else if (yw2d.pad_lock == 0)
     {
+        MikuPan_ItemListMouseInput();
+
         if (TRIANGLE_PRESSED() == 1)
         {
             if (IsLoadEndAll() != 0)
@@ -377,6 +505,10 @@ void IngameMenuItemUseSlct()
         (iew.hp_max_chk != 0 || iew.flm_dff_chk != 0 || iew.itm_eve_chk != 0)
     )
     {
+        if (yw2d.pad_lock == 0)
+        {
+            MikuPan_ItemMessageMouseInput();
+        }
         if (ig_menu_wrk.csr[1] > ig_menu_wrk.item_num - 1)
         {
             if (yw2d.pad_lock == 0)
@@ -523,6 +655,8 @@ void IngameMenuItemUseSlct()
     {
         return;
     }
+
+    MikuPan_ItemYesNoMouseInput();
 
     if (TRIANGLE_PRESSED() == 1)
     {

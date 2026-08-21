@@ -17,6 +17,7 @@
 #include "ingame/menu/item.h"
 #include "main/glob.h"
 #include "mikupan/mikupan_config.h"
+#include "mikupan/io/mikupan_controller.h"
 #include "mikupan/mikupan_memory.h"
 #include "mikupan/mikupan_utils.h"
 #include "mikupan/rendering/mikupan_gpu.h"
@@ -31,6 +32,7 @@ static void MapModeInOut2();
 static void DspPlyrInMap(u_char alp);
 static void MapScoop();
 static void MapMove(u_char alp);
+static void MikuPan_MapMouseInput(void);
 static void MapInfo1(u_char alp);
 static void MapInfo2(u_char alp);
 static void MapPrint(short int mov_px, short int mov_py, u_char alp, u_char mini);
@@ -78,6 +80,70 @@ u_char rm_in_flr3[2] = { 20, 0xff };
 static FLSH_CORE flsh[3];
 
 static MAP_CTRL map = {0};
+static int mikupan_map_mouse_dragging = 0;
+static float mikupan_map_drag_x_remainder = 0.0f;
+static float mikupan_map_drag_y_remainder = 0.0f;
+
+static void MikuPan_MapMouseInput(void)
+{
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        mikupan_map_mouse_dragging = 0;
+        return;
+    }
+
+    const int over_map = MikuPan_LegacyMouseHit(20.0f, 82.0f, 600.0f, 270.0f);
+    if (mouse.left_pressed && over_map)
+    {
+        mikupan_map_mouse_dragging = 1;
+        mikupan_map_drag_x_remainder = 0.0f;
+        mikupan_map_drag_y_remainder = 0.0f;
+    }
+
+    if (mikupan_map_mouse_dragging && mouse.left_down && mouse.moved)
+    {
+        const float scale = map.scl_now > 0 ? map.scl_now : 1.0f;
+        mikupan_map_drag_x_remainder += mouse.dx * 10.0f / scale;
+        mikupan_map_drag_y_remainder += mouse.dy * 10.0f / scale;
+        const int move_x = (int)mikupan_map_drag_x_remainder;
+        const int move_y = (int)mikupan_map_drag_y_remainder;
+        if (move_x != 0 || move_y != 0)
+        {
+            map.mvx += move_x;
+            map.mvy += move_y;
+            mikupan_map_drag_x_remainder -= move_x;
+            mikupan_map_drag_y_remainder -= move_y;
+            map.line_alp = 100;
+        }
+    }
+
+    if (mouse.left_released)
+    {
+        mikupan_map_mouse_dragging = 0;
+    }
+
+    if (mouse.right_pressed
+        || (mouse.left_pressed && MikuPan_LegacyMouseHit(462.0f, 48.0f, 100.0f, 34.0f)))
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+    }
+    else if (mouse.middle_pressed
+             || mouse.wheel_y != 0
+             || (mouse.left_pressed && MikuPan_LegacyMouseHit(462.0f, 18.0f, 100.0f, 30.0f)))
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+    }
+    else if (mouse.left_pressed && MikuPan_LegacyMouseHit(280.0f, 18.0f, 48.0f, 45.0f))
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_L1);
+    }
+    else if (mouse.left_pressed && MikuPan_LegacyMouseHit(328.0f, 18.0f, 48.0f, 45.0f))
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_R1);
+    }
+}
+
 
 #define PI 3.1415927f
 
@@ -151,6 +217,8 @@ void IngameMenuMap()
 
     if (yw2d.pad_lock == 0)
     {
+        MikuPan_MapMouseInput();
+
         if (TRIANGLE_PRESSED() == 1)
         {
             SeStartFix(SE_CANCEL, 0, 0x1000, 0x1000, 1);

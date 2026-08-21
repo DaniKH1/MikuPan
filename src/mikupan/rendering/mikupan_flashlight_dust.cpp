@@ -36,7 +36,7 @@ typedef struct MikuPan_DoorDustBurst
 
 static const MikuPan_FlashlightDustRoomInfo g_dust_rooms[] = {
     {0, "R000 Genkan", 0.85f},
-    {1, "R001 Fusuma", 0.90f},
+    {1, "R001 Fusuma", 1.20f},
     {2, "R002 Izanai", 0.80f},
     {3, "R003 Ousetsu", 0.70f},
     {4, "R004 Semai", 0.00f},
@@ -50,7 +50,7 @@ static const MikuPan_FlashlightDustRoomInfo g_dust_rooms[] = {
     {12, "R012 Ima", 0.85f},
     {13, "R013 Anutsu", 1.00f},
     {14, "R014 Butsuma", 0.90f},
-    {15, "R015 Kouji", 0.85f},
+    {15, "R015 Kouji (Rubble)", 1.35f},
     {16, "R016 Nakaniwa", 0.00f},
     {17, "R017 Kaidan", 0.95f},
     {18, "R018", 0.90f},
@@ -228,18 +228,100 @@ const MikuPan_FlashlightDustRoomInfo* MikuPan_GetFlashlightDustRoomInfo(int inde
     return &g_dust_rooms[index];
 }
 
-static int MikuPan_DustGetAmbientParticleBudget(void)
+static float MikuPan_DustGetRoomQuantityScale(int room_no)
 {
+    switch (room_no)
+    {
+    case R001_FUSUMA:
+        return 1.55f;
+    case R015_KOUJI:
+        return 1.80f;
+    default:
+        return 1.0f;
+    }
+}
+
+static float MikuPan_DustGetRoomAmbientScale(int room_no)
+{
+    switch (room_no)
+    {
+    case R001_FUSUMA:
+        return 0.20f;
+    case R015_KOUJI:
+        return 0.28f;
+    default:
+        return 0.0f;
+    }
+}
+
+static float MikuPan_DustGetRoomSizeScale(int room_no)
+{
+    switch (room_no)
+    {
+    case R001_FUSUMA:
+        return 1.12f;
+    case R015_KOUJI:
+        return 1.18f;
+    default:
+        return 1.0f;
+    }
+}
+
+static float MikuPan_DustGetResolutionScale(void)
+{
+    float scale_x;
+    float scale_y;
+    float scale;
+
+    if (render_back_msaa.texture.width <= 0 || render_back_msaa.texture.height <= 0)
+    {
+        return 1.0f;
+    }
+
+    scale_x = (float)render_back_msaa.texture.width / 640.0f;
+    scale_y = (float)render_back_msaa.texture.height / 448.0f;
+    scale = scale_x < scale_y ? scale_x : scale_y;
+
+    if (scale < 1.0f)
+    {
+        return 1.0f;
+    }
+    if (scale > 4.0f)
+    {
+        return 4.0f;
+    }
+    return scale;
+}
+
+static int MikuPan_DustGetAmbientParticleBudget(int room_no)
+{
+    int budget;
+    const float quantity_scale = MikuPan_DustGetRoomQuantityScale(room_no);
+
     switch (g_dust_settings.level)
     {
     case 0:
-        return 52;
+        budget = 56;
+        break;
     case 2:
-        return 184;
+        budget = 192;
+        break;
     case 1:
     default:
-        return 104;
+        budget = 112;
+        break;
     }
+
+    budget = (int)((float)budget * quantity_scale + 0.5f);
+    if (budget < 24)
+    {
+        budget = 24;
+    }
+    if (budget > 448)
+    {
+        budget = 448;
+    }
+    return budget;
 }
 
 static int MikuPan_DustGetDoorParticleBudget(void)
@@ -394,6 +476,22 @@ static float MikuPan_DustScreenFactor(const float clip[4])
     }
 
     return 1.0f - MikuPan_DustSmooth01((edge - 0.88f) / 0.24f);
+}
+
+static float MikuPan_DustCameraDepthFactor(const float clip[4])
+{
+    const float depth = clip[3];
+    float near_fade;
+    float far_fade;
+
+    if (depth <= 45.0f || depth >= 1900.0f)
+    {
+        return 0.0f;
+    }
+
+    near_fade = MikuPan_DustSmooth01((depth - 45.0f) / 180.0f);
+    far_fade = 1.0f - MikuPan_DustSmooth01((depth - 1280.0f) / 620.0f);
+    return near_fade * far_fade;
 }
 
 static void MikuPan_DustWriteVertex(float* destination,
@@ -562,12 +660,20 @@ static int MikuPan_DustBuildAmbientParticles(int room_no,
     const float cone_height = 0.62f;
     const float cell_xz = 285.0f;
     const float cell_y = 190.0f;
+    const float coarse_radius = 2050.0f;
+    const float coarse_radius_squared = coarse_radius * coarse_radius;
     const int range_xz = 8;
     const int range_y = 4;
     const int center_x = MikuPan_DustFloorCell(plyr_wrk.move_box.pos[0], cell_xz);
     const int center_y = MikuPan_DustFloorCell(plyr_wrk.move_box.pos[1], cell_y);
     const int center_z = MikuPan_DustFloorCell(plyr_wrk.move_box.pos[2], cell_xz);
-    const int budget = MikuPan_DustGetAmbientParticleBudget();
+    const float quantity_scale = MikuPan_DustGetRoomQuantityScale(room_no);
+    const float room_ambient_scale = MikuPan_DustGetRoomAmbientScale(room_no);
+    const float room_size_scale = MikuPan_DustGetRoomSizeScale(room_no);
+    const float resolution_scale = MikuPan_DustGetResolutionScale();
+    const float spawn_threshold = MikuPan_DustClamp01(
+        0.66f + (quantity_scale - 1.0f) * 0.18f);
+    const int budget = MikuPan_DustGetAmbientParticleBudget(room_no);
     const float alpha_scale = MikuPan_DustGetLevelAlphaScale() * room_density;
     int particle_count = 0;
     int delta_z;
@@ -585,10 +691,12 @@ static int MikuPan_DustBuildAmbientParticles(int room_no,
                 const int cell_z = center_z + delta_z;
                 float spawn_chance;
                 float flashlight_factor;
-                float depth;
+                float world_factor;
+                float visibility;
                 float flicker;
                 float alpha;
                 float size_pixels;
+                float screen_factor;
                 float clip[4];
                 float ndc_radius_x;
                 float ndc_radius_y;
@@ -601,7 +709,7 @@ static int MikuPan_DustBuildAmbientParticles(int room_no,
 
                 spawn_chance = MikuPan_DustCellRandom01(cell_x, cell_y_index,
                                                         cell_z, 0, room_no);
-                if (spawn_chance > 0.66f)
+                if (spawn_chance > spawn_threshold)
                 {
                     continue;
                 }
@@ -612,6 +720,16 @@ static int MikuPan_DustBuildAmbientParticles(int room_no,
                     cell_x, cell_y_index, cell_z, 2, room_no)) * cell_y;
                 world[2] = ((float)cell_z + MikuPan_DustCellRandom01(
                     cell_x, cell_y_index, cell_z, 3, room_no)) * cell_xz;
+
+                {
+                    const float dx = world[0] - plyr_wrk.move_box.pos[0];
+                    const float dy = world[1] - plyr_wrk.move_box.pos[1];
+                    const float dz = world[2] - plyr_wrk.move_box.pos[2];
+                    if (dx * dx + dy * dy + dz * dz > coarse_radius_squared)
+                    {
+                        continue;
+                    }
+                }
 
                 {
                     const float phase_a = MikuPan_DustCellRandom01(
@@ -654,37 +772,50 @@ static int MikuPan_DustBuildAmbientParticles(int room_no,
                                 * turbulence_radius;
                 }
 
-                flashlight_factor = MikuPan_DustConeFactor(
-                    world, flashlight_inverse_matrix, near_z, far_z,
-                    cone_width, cone_height, &depth);
-                if (flashlight_factor <= 0.0f)
-                {
-                    continue;
-                }
-
                 if (!MikuPan_DustProjectClip(world, clip))
                 {
                     continue;
                 }
 
-                flicker = 0.86f
-                          + 0.14f * sinf(time_seconds * 0.73f
-                                         + MikuPan_DustCellRandom01(
-                                             cell_x, cell_y_index, cell_z,
-                                             11, room_no) * MIKUPAN_DUST_PI2);
-                alpha = 0.105f * alpha_scale * flashlight_factor * flicker;
-                if (alpha <= 0.006f)
+                screen_factor = MikuPan_DustScreenFactor(clip);
+                if (screen_factor <= 0.0f)
                 {
                     continue;
                 }
 
-                size_pixels = 0.70f
+                flashlight_factor = MikuPan_DustConeFactor(
+                    world, flashlight_inverse_matrix, near_z, far_z,
+                    cone_width, cone_height, NULL);
+                world_factor = room_ambient_scale
+                               * MikuPan_DustCameraDepthFactor(clip);
+                visibility = (flashlight_factor
+                              + world_factor * (1.0f - flashlight_factor))
+                             * screen_factor;
+                if (visibility <= 0.0f)
+                {
+                    continue;
+                }
+
+                flicker = 0.84f
+                          + 0.16f * sinf(time_seconds * 0.73f
+                                         + MikuPan_DustCellRandom01(
+                                             cell_x, cell_y_index, cell_z,
+                                             11, room_no) * MIKUPAN_DUST_PI2);
+                alpha = 0.13f * alpha_scale * visibility * flicker;
+                alpha = MikuPan_DustClamp01(alpha);
+                if (alpha <= 0.004f)
+                {
+                    continue;
+                }
+
+                size_pixels = 0.90f
                               + MikuPan_DustCellRandom01(
                                   cell_x, cell_y_index, cell_z, 12, room_no)
-                                * 1.85f;
+                                * 2.10f;
                 size_pixels *= 1.0f
-                               + (1.0f - MikuPan_DustClamp01(depth / far_z))
-                                 * 0.38f;
+                               + (1.0f - MikuPan_DustClamp01(clip[3] / far_z))
+                                 * 0.34f;
+                size_pixels *= resolution_scale * room_size_scale * 0.5f;
                 ndc_radius_x = size_pixels * 2.0f
                                / (float)render_back_msaa.texture.width;
                 ndc_radius_y = size_pixels * 2.0f
@@ -695,7 +826,7 @@ static int MikuPan_DustBuildAmbientParticles(int room_no,
                     float green;
                     float blue;
 
-                    MikuPan_DustResolveColor(0.82f, 0.78f, 0.64f,
+                    MikuPan_DustResolveColor(0.86f, 0.82f, 0.70f,
                                              &red, &green, &blue);
                     if (!MikuPan_DustAddQuad(vertex_count, clip,
                                              ndc_radius_x, ndc_radius_y,
@@ -718,6 +849,7 @@ static int MikuPan_DustBuildDoorParticles(float time_seconds,
                                           int* vertex_count)
 {
     const float duration = MikuPan_DustGetDoorDuration();
+    const float resolution_scale = MikuPan_DustGetResolutionScale();
     int particle_count = 0;
     int burst_index;
 
@@ -842,6 +974,7 @@ static int MikuPan_DustBuildDoorParticles(float time_seconds,
             size_pixels = 0.85f
                           + MikuPan_DoorDustRandom01(
                               burst, particle_index, 10) * 2.35f;
+            size_pixels *= resolution_scale * 0.5f;
             ndc_radius_x = size_pixels * 2.0f
                            / (float)render_back_msaa.texture.width;
             ndc_radius_y = size_pixels * 2.0f
@@ -1083,8 +1216,9 @@ void MikuPan_RenderFlashlightDust(void)
     g_dust_debug.door_disturbance_enabled =
         g_dust_settings.door_disturbance_enabled;
     g_dust_debug.level = g_dust_settings.level;
-    g_dust_debug.ambient_particle_budget = MikuPan_DustGetAmbientParticleBudget();
     g_dust_debug.room_no = plyr_wrk.pr_info.room_no;
+    g_dust_debug.ambient_particle_budget = MikuPan_DustGetAmbientParticleBudget(
+        g_dust_debug.room_no);
     g_dust_debug.room_allowed =
         MikuPan_IsFlashlightDustRoomEnabled(g_dust_debug.room_no);
     g_dust_debug.room_density = g_dust_debug.room_allowed

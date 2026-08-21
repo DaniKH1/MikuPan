@@ -2,6 +2,7 @@
 #include "../mikupan_types.h"
 #include "SDL3/SDL_hints.h"
 #include "SDL3/SDL_init.h"
+#include "SDL3/SDL_mouse.h"
 #include "SDL3/SDL_timer.h"
 #include "cglm/cglm.h"
 #include "graphics/graph2d/message.h"
@@ -69,6 +70,120 @@ static unsigned int g_enemy_out_capture_texture_id[3] = {0, 0, 0};
 static int g_enemy_out_capture_valid[3] = {0, 0, 0};
 static int g_enemy_out_capture_width[3] = {0, 0, 0};
 static int g_enemy_out_capture_height[3] = {0, 0, 0};
+
+static SDL_Cursor *g_mikupan_cursor = NULL;
+static int g_game_cursor_visible = 1;
+
+static void MikuPan_InitGameCursor(void)
+{
+#ifndef __ANDROID__
+    if (g_mikupan_cursor != NULL)
+    {
+        SDL_SetCursor(g_mikupan_cursor);
+        if (g_game_cursor_visible)
+        {
+            SDL_ShowCursor();
+        }
+        else
+        {
+            SDL_HideCursor();
+        }
+        return;
+    }
+
+    char path[1024];
+    SDL_Surface *surface = NULL;
+    if (MikuPan_ResolveBasePath("resources/ui/mikupan_cursor.png",
+                                path,
+                                sizeof(path)))
+    {
+        surface = SDL_LoadPNG(path);
+    }
+
+    if (surface != NULL)
+    {
+        g_mikupan_cursor = SDL_CreateColorCursor(surface, 0, 0);
+        SDL_DestroySurface(surface);
+    }
+
+    if (g_mikupan_cursor == NULL)
+    {
+        info_log("Could not load resources/ui/mikupan_cursor.png: %s",
+                 SDL_GetError());
+        g_mikupan_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
+    }
+
+    if (g_mikupan_cursor != NULL)
+    {
+        SDL_SetCursor(g_mikupan_cursor);
+        if (g_game_cursor_visible)
+        {
+            SDL_ShowCursor();
+        }
+        else
+        {
+            SDL_HideCursor();
+        }
+    }
+#endif
+}
+
+void MikuPan_ApplyGameCursor(void)
+{
+#ifndef __ANDROID__
+    if (g_mikupan_cursor != NULL)
+    {
+        SDL_SetCursor(g_mikupan_cursor);
+        if (g_game_cursor_visible)
+        {
+            SDL_ShowCursor();
+        }
+        else
+        {
+            SDL_HideCursor();
+        }
+    }
+#endif
+}
+
+void MikuPan_SetGameCursorVisible(int visible)
+{
+#ifndef __ANDROID__
+    g_game_cursor_visible = visible ? 1 : 0;
+    if (g_mikupan_cursor != NULL)
+    {
+        SDL_SetCursor(g_mikupan_cursor);
+    }
+    if (g_game_cursor_visible)
+    {
+        SDL_ShowCursor();
+    }
+    else
+    {
+        SDL_HideCursor();
+    }
+#endif
+}
+
+int MikuPan_IsGameCursorVisible(void)
+{
+#ifndef __ANDROID__
+    return g_game_cursor_visible;
+#else
+    return 0;
+#endif
+}
+
+static void MikuPan_ShutdownGameCursor(void)
+{
+#ifndef __ANDROID__
+    if (g_mikupan_cursor != NULL)
+    {
+        SDL_DestroyCursor(g_mikupan_cursor);
+        g_mikupan_cursor = NULL;
+    }
+#endif
+}
 
 static int MikuPan_IsValidEnemyOutCaptureSlot(int slot)
 {
@@ -287,8 +402,11 @@ SDL_AppResult MikuPan_Init()
         return SDL_APP_FAILURE;
     }
 
+    MikuPan_InitGameCursor();
+
 #ifndef __ANDROID__
     MikuPan_ApplyWindowMode(startup_window_mode);
+    MikuPan_ApplyGameCursor();
 #endif
 
     SDL_GetWindowSize(mikupan_render.window, &mikupan_render.width, &mikupan_render.height);
@@ -2333,6 +2451,7 @@ void MikuPan_Shutdown()
 {
     MikuPan_TextureShutdown();
     MikuPan_GPUShutdown();
+    MikuPan_ShutdownGameCursor();
     SDL_DestroyWindow(mikupan_render.window);
     MikuPan_ShutdownLogging();
 }

@@ -1918,6 +1918,7 @@ static void GetNowOpenFindAct()
 
 static void GetNowPlayerMoveMotion()
 {
+    room_wrk.mot_num = GetDataNum(MAP_MOVE_MOT, plyr_wrk.pr_info.room_no);
     plyr_wrk.move_mot = GetPointMoveMotion(plyr_wrk.move_box.pos, plyr_wrk.pr_info.room_no);
 }
 
@@ -1927,12 +1928,19 @@ u_char GetPointMoveMotion(sceVu0FVECTOR p, u_char no)
     u_char i;
     u_char room;
     u_char mot;
+    u_char mot_num;
 
     mot = 0xff;
-
     room = GetDataRoom(MAP_MOVE_MOT, no);
 
-    for (i = 0; i < room_wrk.mot_num; i++)
+    if (room == 0xff)
+    {
+        return mot;
+    }
+
+    mot_num = GetDataNum(MAP_MOVE_MOT, no);
+
+    for (i = 0; i < mot_num; i++)
     {
         if (PosInAreaJudge1(MAP_MOVE_MOT, room, i, p[2], p[0]) != 0)
         {

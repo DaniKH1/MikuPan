@@ -590,25 +590,7 @@ public:
     explicit MikuPanRmlSystemInterface(SDL_Window* in_window)
         : window(in_window)
     {
-        cursor_default = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
-        cursor_pointer = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
-        cursor_text = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_TEXT);
-    }
-
-    ~MikuPanRmlSystemInterface() override
-    {
-        if (cursor_default != nullptr)
-        {
-            SDL_DestroyCursor(cursor_default);
-        }
-        if (cursor_pointer != nullptr)
-        {
-            SDL_DestroyCursor(cursor_pointer);
-        }
-        if (cursor_text != nullptr)
-        {
-            SDL_DestroyCursor(cursor_text);
-        }
+        MikuPan_ApplyGameCursor();
     }
 
     double GetElapsedTime() override
@@ -618,20 +600,7 @@ public:
 
     void SetMouseCursor(const Rml::String& cursor_name) override
     {
-        SDL_Cursor* cursor = cursor_default;
-        if (cursor_name == "pointer")
-        {
-            cursor = cursor_pointer;
-        }
-        else if (cursor_name == "text")
-        {
-            cursor = cursor_text;
-        }
-
-        if (cursor != nullptr)
-        {
-            SDL_SetCursor(cursor);
-        }
+        MikuPan_ApplyGameCursor();
     }
 
     void SetClipboardText(const Rml::String& text) override
@@ -675,9 +644,6 @@ public:
 
 private:
     SDL_Window* window = nullptr;
-    SDL_Cursor* cursor_default = nullptr;
-    SDL_Cursor* cursor_pointer = nullptr;
-    SDL_Cursor* cursor_text = nullptr;
 };
 
 class MikuPanRmlRenderInterface final : public Rml::RenderInterface
@@ -1327,7 +1293,7 @@ void SetPointerInputActive(bool active)
     {
         if (active)
         {
-            SDL_ShowCursor();
+            MikuPan_SetGameCursorVisible(1);
         }
         return;
     }
@@ -1335,7 +1301,7 @@ void SetPointerInputActive(bool active)
     g_rml.pointer_input_active = active;
     if (active)
     {
-        SDL_ShowCursor();
+        MikuPan_SetGameCursorVisible(1);
     }
     else
     {
@@ -1343,7 +1309,7 @@ void SetPointerInputActive(bool active)
         {
             g_rml.context->ProcessMouseLeave();
         }
-        SDL_HideCursor();
+        MikuPan_SetGameCursorVisible(0);
     }
 }
 
@@ -2261,6 +2227,7 @@ void MikuPan_RmlUiProcessEvent(SDL_Event* event)
         }
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
         {
+            SetPointerInputActive(true);
             if (!g_rml.pointer_input_active)
             {
                 break;
@@ -2282,6 +2249,7 @@ void MikuPan_RmlUiProcessEvent(SDL_Event* event)
         }
         case SDL_EVENT_MOUSE_BUTTON_UP:
         {
+            SetPointerInputActive(true);
             if (!g_rml.pointer_input_active)
             {
                 break;
@@ -2303,6 +2271,7 @@ void MikuPan_RmlUiProcessEvent(SDL_Event* event)
         }
         case SDL_EVENT_MOUSE_WHEEL:
         {
+            SetPointerInputActive(true);
             if (!g_rml.pointer_input_active)
             {
                 break;

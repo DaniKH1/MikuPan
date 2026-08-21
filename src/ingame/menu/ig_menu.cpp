@@ -4,6 +4,7 @@
 #include "ig_menu.h"
 
 #include "mikupan/mikupan_memory.h"
+#include "mikupan/io/mikupan_controller.h"
 #include "mikupan/ui/mikupan_rml_options.h"
 #include "graphics/graph2d/effect.h"
 #include "graphics/graph2d/effect_sub.h"
@@ -32,6 +33,8 @@
 static void IngameMenuOpenInit();
 static u_char MenuInOut();
 static void IngameMenuRmlOption();
+static void MikuPan_IngameMenuBackMouseInput();
+static void MikuPan_IngameMenuMouseInput(u_char mode_limit);
 static void TimeZone(short int pos_x, short int pos_y, float alp);
 static void ClockHari(u_short char_lbl, short int pos_x, short int pos_y, float rot, short int rot_x, short int rot_y, float alp);
 static void ComingOut(short int pos_x, short int pos_y, float alp, u_char shadow);
@@ -182,6 +185,11 @@ void IngameMenuMain()
         return;
     }
 
+    if (yw2d.pad_lock == 0)
+    {
+        MikuPan_IngameMenuBackMouseInput();
+    }
+
     switch(ig_menu_wrk.mode)
     {
     case IGMENU_MODE_SLCT:
@@ -248,6 +256,56 @@ void IngameMenuMain()
     }
 }
 
+
+static void MikuPan_IngameMenuBackMouseInput()
+{
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+
+    if (mouse.right_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+    }
+}
+
+static void MikuPan_IngameMenuMouseInput(u_char mode_limit)
+{
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+
+    const float row_y = ingame_wrk.clear_count != 0 ? 138.0f : 214.0f;
+    for (int i = 0; i <= mode_limit; i++)
+    {
+        if (!MikuPan_LegacyMouseHit(33.0f, row_y + i * 38.0f, 123.0f, 30.0f))
+        {
+            continue;
+        }
+
+        if (mouse.moved && ig_menu_wrk.csr[0] != i)
+        {
+            ig_menu_wrk.csr[0] = i;
+            SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 1);
+        }
+        if (mouse.left_pressed)
+        {
+            ig_menu_wrk.csr[0] = i;
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+        }
+        break;
+    }
+
+    if (mouse.right_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+    }
+}
+
 void IngameMenuModeSlct()
 {
     u_char mode_limit;
@@ -268,6 +326,8 @@ void IngameMenuModeSlct()
 
     if (yw2d.pad_lock == 0)
     {
+        MikuPan_IngameMenuMouseInput(mode_limit);
+
         if (TRIANGLE_PRESSED() == 1)
         {
             yw2d.menu_io_flg = 2;

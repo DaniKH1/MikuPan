@@ -289,6 +289,7 @@ struct MikuPanRmlOptionsState
     Rml::ElementFormControlInput* crt_enabled_input = nullptr;
     Rml::ElementFormControlInput* minimap_enabled_input = nullptr;
     Rml::ElementFormControlInput* keep_finder_raised_input = nullptr;
+    Rml::ElementFormControlInput* number_door_fix_localization_input = nullptr;
     Rml::ElementFormControlInput* finder_dpad_film_swap_input = nullptr;
     Rml::ElementFormControlInput* mirror_stone_hud_input = nullptr;
     Rml::ElementFormControlInput* improved_movement_collisions_input = nullptr;
@@ -4706,6 +4707,7 @@ bool FocusedControlWantsSpaceConfirm(void)
         || focus == g_rml.crt_enabled_input
         || focus == g_rml.minimap_enabled_input
         || focus == g_rml.keep_finder_raised_input
+        || focus == g_rml.number_door_fix_localization_input
         || focus == g_rml.finder_dpad_film_swap_input
         || focus == g_rml.mirror_stone_hud_input
         || focus == g_rml.improved_movement_collisions_input
@@ -5215,6 +5217,8 @@ void SyncRmlSettingsValues(void)
                 mikupan_configuration.minimap_enabled);
     SetCheckbox(g_rml.keep_finder_raised_input,
                 MikuPan_KeepFinderRaisedForApparitionsEnabled());
+    SetCheckbox(g_rml.number_door_fix_localization_input,
+                mikupan_configuration.number_door_fix_localization);
     SetCheckbox(g_rml.finder_dpad_film_swap_input,
                 MikuPan_FinderDpadFilmSwapEnabled());
     SetCheckbox(g_rml.mirror_stone_hud_input,
@@ -5603,6 +5607,17 @@ bool LoadOptionsDocument(void)
                     [](Rml::ElementFormControlInput* input) {
                         MarkSettingsDirty();
                         mikupan_configuration.minimap_enabled =
+                            IsCheckboxChecked(input) ? 1 : 0;
+                    }));
+
+    g_rml.number_door_fix_localization_input =
+        GetInput("number-door-fix-localization-input");
+    AddListener(g_rml.number_door_fix_localization_input,
+                Rml::EventId::Change,
+                std::make_unique<MikuPanInputListener>(
+                    [](Rml::ElementFormControlInput* input) {
+                        MarkSettingsDirty();
+                        mikupan_configuration.number_door_fix_localization =
                             IsCheckboxChecked(input) ? 1 : 0;
                     }));
 

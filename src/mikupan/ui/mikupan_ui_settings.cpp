@@ -1061,7 +1061,7 @@ void MikuPan_UiSettingsRender(void)
                                 dust_levels, 3, -1);
 
                 bool ambient_enabled = dust_settings->ambient_enabled != 0;
-                if (igCheckbox("Flashlight Dust", &ambient_enabled))
+                if (igCheckbox("Room Dust", &ambient_enabled))
                 {
                     dust_settings->ambient_enabled = ambient_enabled ? 1 : 0;
                 }

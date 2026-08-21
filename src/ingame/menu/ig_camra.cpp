@@ -9,8 +9,109 @@
 #include "ingame/menu/ig_menu.h"
 #include "ingame/menu/item.h"
 #include "main/glob.h"
+#include "mikupan/io/mikupan_controller.h"
 #include "os/eeiop/eese.h"
 #include "outgame/mode_slct.h"
+
+
+static void MikuPan_CameraMenuMouseInput(void)
+{
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (!MikuPan_LegacyMouseHit(32.0f, 120.0f + i * 50.0f, 122.0f, 42.0f))
+        {
+            continue;
+        }
+        if (mouse.moved && cmr_menu_wrk.csr[0] != i)
+        {
+            cmr_menu_wrk.csr[0] = i;
+            SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 1);
+        }
+        if (mouse.left_pressed)
+        {
+            cmr_menu_wrk.csr[0] = i;
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+        }
+        break;
+    }
+    if (mouse.right_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+    }
+}
+
+static void MikuPan_CameraFilmMouseInput(void)
+{
+    static const short x[4] = {204, 204, 409, 409};
+    static const short y[4] = {129, 178, 129, 178};
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (!MikuPan_LegacyMouseHit(x[i], y[i], 197.0f, 45.0f))
+        {
+            continue;
+        }
+        if (mouse.moved && cmr_menu_wrk.csr[1] != i)
+        {
+            cmr_menu_wrk.csr[1] = i;
+            SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 1);
+        }
+        if (mouse.left_pressed)
+        {
+            cmr_menu_wrk.csr[1] = i;
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+        }
+        break;
+    }
+    if (mouse.right_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+    }
+}
+
+static void MikuPan_CameraYesNoMouseInput(void)
+{
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+
+    for (int i = 0; i < 2; i++)
+    {
+        if (!MikuPan_LegacyMouseHit(156.0f + i * 132.0f, 356.0f, 120.0f, 56.0f))
+        {
+            continue;
+        }
+        if (mouse.moved && cmr_menu_wrk.csr[5] != i)
+        {
+            cmr_menu_wrk.csr[5] = i;
+            SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 1);
+        }
+        if (mouse.left_pressed)
+        {
+            cmr_menu_wrk.csr[5] = i;
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+        }
+        break;
+    }
+
+    if (mouse.right_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+    }
+}
 
 int camera_power_up_point[3][3] = {
     {  4000, 12000, 24000 },
@@ -92,6 +193,11 @@ void CameraCustomMain()
 {
     static char err;
 
+    if (yw2d.pad_lock == 0 && cmr_menu_wrk.yn_mode != 0)
+    {
+        MikuPan_CameraYesNoMouseInput();
+    }
+
     switch(cmr_menu_wrk.mode)
     {
     case 4:
@@ -118,6 +224,7 @@ void CameraCustomMenuSlct(char *err)
 {
     if (yw2d.pad_lock == 0)
     {
+        MikuPan_CameraMenuMouseInput();
         if (TRIANGLE_PRESSED() == 1)
         {
             SeStartFix(SE_CANCEL, 0, 0x1000, 0x1000, 1);
@@ -174,6 +281,7 @@ void CameraCustomFilm(char *err)
 {
     if (yw2d.pad_lock == 0)
     {
+        MikuPan_CameraFilmMouseInput();
         if (TRIANGLE_PRESSED() == 1)
         {
             SeStartFix(SE_CANCEL, 0, 0x1000, 0x1000, 1);
