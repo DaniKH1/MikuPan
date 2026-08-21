@@ -1,6 +1,7 @@
 #include "mikupan_config.h"
 
 #include "debug/mikupan_logging.h"
+#include "mikupan/io/mikupan_file.h"
 
 #include <SDL3/SDL_filesystem.h>
 #ifdef __ANDROID__
@@ -609,7 +610,7 @@ extern "C" void MikuPan_LoadConfiguration(const char *filename)
             base = SDL_GetAndroidInternalStoragePath();
         }
 #else
-        const char *base = SDL_GetBasePath();
+        const char *base = MikuPan_GetBaseDirectory();
 #endif
         if (base != nullptr)
         {
