@@ -42,7 +42,9 @@ You need either `MinGW` or `Cygwin` with `gcc` and `CMake` in order to build `Mi
 `GCC` and `CMake` required to build `MikuPan`.
 
 ## macOS
-Apple Silicon and Intel Macs build with the Xcode Command Line Tools
+macOS is not officially supported: the maintainers have no Apple hardware to
+actively test on, so it may break between releases. It has been verified to
+build and run on Apple Silicon by contributors. Building needs the Xcode Command Line Tools
 (`xcode-select --install`) plus `cmake`, `ninja` and `git` from Homebrew:
 
 ```sh
