@@ -4,6 +4,7 @@
 #include "mikupan/debug/mikupan_logging_c.h"
 #include "mikupan/mikupan_utils.h"
 #include "mikupan/gameplay/mikupan_item_icon_hud.h"
+#include "mikupan/rendering/mikupan_renderer.h"
 #include "main/glob.h"
 #include "os/key_cnf.h"
 #include "enums.h"
@@ -68,6 +69,20 @@ static int special_film_swap_direction = 0;
 static int runtime_wheel_steps = 0;
 static MikuPan_InputBinding pending_capture_binding = {};
 static int pending_capture_binding_valid = 0;
+static int legacy_mouse_pending_left_pressed = 0;
+static int legacy_mouse_pending_left_released = 0;
+static int legacy_mouse_pending_right_pressed = 0;
+static int legacy_mouse_pending_middle_pressed = 0;
+static int legacy_mouse_pending_moved = 0;
+static int legacy_mouse_pending_wheel = 0;
+static int legacy_mouse_queued_buttons[MIKUPAN_CONTROLLER_LOGICAL_COUNT] = {};
+static MikuPan_LegacyMouseState legacy_mouse_state = {};
+static float legacy_mouse_previous_x = 0.0f;
+static float legacy_mouse_previous_y = 0.0f;
+static int legacy_mouse_previous_valid = 0;
+static int legacy_mouse_claimed = 0;
+static int legacy_mouse_claimed_previous = 0;
+static int legacy_mouse_delivery_active = 0;
 
 static int MikuPan_ControllerConfigActionProfileTarget(int layout, int target);
 
@@ -283,12 +298,70 @@ int MikuPan_ControllerGetPreferredGamepadIndex(void)
     return mikupan_preferred_gamepad_index;
 }
 
+static void MikuPan_OnMouseInputDetected(void)
+{
+    if (!MikuPan_IsGameCursorVisible())
+    {
+        MikuPan_SetGameCursorVisible(1);
+    }
+}
+
+static void MikuPan_OnControllerInputDetected(void)
+{
+    if (MikuPan_IsGameCursorVisible())
+    {
+        MikuPan_SetGameCursorVisible(0);
+    }
+}
+
 void MikuPan_ControllerProcessEvent(const SDL_Event *event)
 {
     if (event == NULL)
     {
         return;
     }
+
+    if (event->type == SDL_EVENT_MOUSE_MOTION)
+    {
+        legacy_mouse_pending_moved = 1;
+        MikuPan_OnMouseInputDetected();
+    }
+    else if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+    {
+        MikuPan_OnMouseInputDetected();
+        if (event->button.button == SDL_BUTTON_LEFT)
+        {
+            legacy_mouse_pending_left_pressed = 1;
+        }
+        else if (event->button.button == SDL_BUTTON_RIGHT)
+        {
+            legacy_mouse_pending_right_pressed = 1;
+        }
+        else if (event->button.button == SDL_BUTTON_MIDDLE)
+        {
+            legacy_mouse_pending_middle_pressed = 1;
+        }
+    }
+    else if (event->type == SDL_EVENT_MOUSE_BUTTON_UP
+             && event->button.button == SDL_BUTTON_LEFT)
+    {
+        legacy_mouse_pending_left_released = 1;
+        MikuPan_OnMouseInputDetected();
+    }
+    else if (event->type == SDL_EVENT_MOUSE_WHEEL && event->wheel.y != 0.0f)
+    {
+        MikuPan_OnMouseInputDetected();
+        legacy_mouse_pending_wheel += event->wheel.y > 0.0f ? 1 : -1;
+        if (legacy_mouse_pending_wheel > 8)
+        {
+            legacy_mouse_pending_wheel = 8;
+        }
+        else if (legacy_mouse_pending_wheel < -8)
+        {
+            legacy_mouse_pending_wheel = -8;
+        }
+    }
+
 
     if (event->type == SDL_EVENT_KEY_DOWN && !event->key.repeat)
     {
@@ -317,6 +390,147 @@ void MikuPan_ControllerProcessEvent(const SDL_Event *event)
         pending_capture_binding.kind = MIKUPAN_INPUT_BIND_MOUSE_WHEEL;
         pending_capture_binding.code = direction;
         pending_capture_binding_valid = 1;
+    }
+
+    if (event->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
+    {
+        MikuPan_OnControllerInputDetected();
+    }
+    else if (event->type == SDL_EVENT_GAMEPAD_AXIS_MOTION)
+    {
+        const int value = event->gaxis.value;
+        if (value >= 12000 || value <= -12000)
+        {
+            MikuPan_OnControllerInputDetected();
+        }
+    }
+}
+
+void MikuPan_LegacyMouseBeginFrame(void)
+{
+    legacy_mouse_claimed_previous = legacy_mouse_claimed;
+    legacy_mouse_claimed = 0;
+    legacy_mouse_delivery_active = 0;
+
+    legacy_mouse_state = {};
+    legacy_mouse_state.left_pressed = legacy_mouse_pending_left_pressed;
+    legacy_mouse_state.left_released = legacy_mouse_pending_left_released;
+    legacy_mouse_state.right_pressed = legacy_mouse_pending_right_pressed;
+    legacy_mouse_state.middle_pressed = legacy_mouse_pending_middle_pressed;
+    legacy_mouse_state.wheel_y = legacy_mouse_pending_wheel;
+
+    legacy_mouse_pending_left_pressed = 0;
+    legacy_mouse_pending_left_released = 0;
+    legacy_mouse_pending_right_pressed = 0;
+    legacy_mouse_pending_middle_pressed = 0;
+    legacy_mouse_pending_wheel = 0;
+
+    SDL_Window *window = MikuPan_GetUiWindow();
+    if (window == NULL || finder_mouse_active)
+    {
+        legacy_mouse_pending_moved = 0;
+        legacy_mouse_previous_valid = 0;
+        return;
+    }
+
+    float mouse_x = 0.0f;
+    float mouse_y = 0.0f;
+    const SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+    int window_width = 0;
+    int window_height = 0;
+    int pixel_width = 0;
+    int pixel_height = 0;
+    SDL_GetWindowSize(window, &window_width, &window_height);
+    SDL_GetWindowSizeInPixels(window, &pixel_width, &pixel_height);
+    if (window_width <= 0 || window_height <= 0 || pixel_width <= 0 || pixel_height <= 0)
+    {
+        legacy_mouse_pending_moved = 0;
+        legacy_mouse_previous_valid = 0;
+        return;
+    }
+
+    mouse_x *= (float)pixel_width / (float)window_width;
+    mouse_y *= (float)pixel_height / (float)window_height;
+
+    float viewport_x = 0.0f;
+    float viewport_y = 0.0f;
+    float viewport_width = 0.0f;
+    float viewport_height = 0.0f;
+    float viewport_scale = 1.0f;
+    MikuPan_GetPS2Viewport(pixel_width, pixel_height, &viewport_x, &viewport_y,
+                           &viewport_width, &viewport_height, &viewport_scale);
+    if (viewport_scale <= 0.0f)
+    {
+        legacy_mouse_pending_moved = 0;
+        legacy_mouse_previous_valid = 0;
+        return;
+    }
+
+    legacy_mouse_state.x = (mouse_x - viewport_x) / viewport_scale;
+    legacy_mouse_state.y = (mouse_y - viewport_y) / viewport_scale;
+    legacy_mouse_state.inside = mouse_x >= viewport_x && mouse_y >= viewport_y
+                                && mouse_x < viewport_x + viewport_width
+                                && mouse_y < viewport_y + viewport_height;
+    legacy_mouse_state.left_down =
+        (buttons & SDL_BUTTON_MASK(SDL_BUTTON_LEFT)) != 0;
+
+    if (legacy_mouse_previous_valid)
+    {
+        legacy_mouse_state.dx = legacy_mouse_state.x - legacy_mouse_previous_x;
+        legacy_mouse_state.dy = legacy_mouse_state.y - legacy_mouse_previous_y;
+    }
+
+    legacy_mouse_state.moved = legacy_mouse_pending_moved
+                               || legacy_mouse_state.dx != 0.0f
+                               || legacy_mouse_state.dy != 0.0f;
+    legacy_mouse_previous_x = legacy_mouse_state.x;
+    legacy_mouse_previous_y = legacy_mouse_state.y;
+    legacy_mouse_previous_valid = 1;
+    legacy_mouse_pending_moved = 0;
+}
+
+int MikuPan_LegacyMouseGetState(MikuPan_LegacyMouseState *state)
+{
+    if (state == NULL || finder_mouse_active || MikuPan_UiIsMenuOpen()
+        || MikuPan_RmlOptionsIsOpen() || MikuPan_RmlSaveLoadIsOpen()
+        || MikuPan_RmlSavePointInputEnabled())
+    {
+        return 0;
+    }
+
+    ImGuiIO *io = igGetIO_Nil();
+    if (io != NULL && (io->WantCaptureMouse || io->WantTextInput))
+    {
+        return 0;
+    }
+
+    legacy_mouse_claimed = 1;
+    *state = legacy_mouse_state;
+    if (legacy_mouse_delivery_active)
+    {
+        state->moved = 0;
+        state->left_pressed = 0;
+        state->left_released = 0;
+        state->right_pressed = 0;
+        state->middle_pressed = 0;
+        state->wheel_y = 0;
+    }
+    return state->inside;
+}
+
+int MikuPan_LegacyMouseHit(float x, float y, float width, float height)
+{
+    return legacy_mouse_state.inside
+           && legacy_mouse_state.x >= x && legacy_mouse_state.y >= y
+           && legacy_mouse_state.x < x + width
+           && legacy_mouse_state.y < y + height;
+}
+
+void MikuPan_QueueLegacyControllerButton(int logical_button)
+{
+    if (logical_button >= 0 && logical_button < MIKUPAN_CONTROLLER_LOGICAL_COUNT)
+    {
+        legacy_mouse_queued_buttons[logical_button] = 1;
     }
 }
 
@@ -663,6 +877,10 @@ void MikuPan_ControllerLoadBindingsFromConfig(void)
         mikupan_controller_map[i].code = cfg->controller_code[i];
         mikupan_keyboard_map[i]        = cfg->keyboard_scancode[i];
     }
+    if (mikupan_keyboard_map[1] == SDL_SCANCODE_BACKSPACE)
+    {
+        mikupan_keyboard_map[1] = SDL_SCANCODE_SPACE;
+    }
     for (int i = 0; i < MIKUPAN_STICK_COUNT; i++)
     {
         mikupan_stick_controller_map[i].axis         = cfg->stick_axis[i];
@@ -859,7 +1077,10 @@ static int MikuPan_SpecialActionsEnabled(void)
         || MikuPan_UiIsMenuOpen()
         || MikuPan_RmlOptionsIsOpen()
         || MikuPan_RmlSaveLoadIsOpen()
-        || MikuPan_RmlSavePointInputEnabled())
+        || MikuPan_RmlSavePointInputEnabled()
+        || (ingame_wrk.stts & 0x20) != 0
+        || legacy_mouse_claimed_previous
+        || legacy_mouse_claimed)
     {
         return 0;
     }
@@ -1136,6 +1357,29 @@ int MikuPan_ReadController(unsigned char *rdata)
     }
 
     MikuPan_ApplySpecialActions(pressed_buttons, key_states);
+
+    if (key_states != NULL
+        && key_states[SDL_SCANCODE_BACKSPACE]
+        && sys_wrk.game_mode == GAME_MODE_INGAME
+        && (legacy_mouse_claimed_previous || legacy_mouse_claimed
+            || ingame_wrk.mode == INGAME_MODE_MENU)
+        && !MikuPan_RmlOptionsIsOpen()
+        && !MikuPan_RmlSaveLoadIsOpen()
+        && !MikuPan_RmlSavePointInputEnabled())
+    {
+        pressed_buttons[1] = 0;
+        pressed_buttons[3] = 1;
+    }
+
+    for (int i = 0; i < MIKUPAN_CONTROLLER_LOGICAL_COUNT; i++)
+    {
+        if (legacy_mouse_queued_buttons[i])
+        {
+            pressed_buttons[i] = 1;
+            legacy_mouse_queued_buttons[i] = 0;
+            legacy_mouse_delivery_active = 1;
+        }
+    }
 
     for (int i = 0; i < MIKUPAN_CONTROLLER_LOGICAL_COUNT; i++)
     {

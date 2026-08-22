@@ -4,6 +4,8 @@
 #include "ev_spcl.h"
 #include "mikupan/mikupan_memory.h"
 #include "mikupan/mikupan_rng.h"
+#include "mikupan/mikupan_config.h"
+#include "mikupan/io/mikupan_controller.h"
 
 #include "graphics/graph2d/effect_scr.h" // SetBlackIn, SetBlackOut
 #include "graphics/graph2d/message.h"
@@ -174,6 +176,417 @@ void (*SpecialEventMainTbl[])() = {
 
 STAR_PZL_WRK star_pzl_wrk = {0};
 DIAL_KEY_WRK dkey_wrk = {0};
+
+
+static int MikuPan_DialKeyPhysicalIndex(int logical_index)
+{
+    if (!mikupan_configuration.number_door_fix_localization)
+    {
+        return logical_index;
+    }
+
+    return logical_index == 0 ? 0 : 10 - logical_index;
+}
+
+static int MikuPan_DialKeyLogicalIndex(int physical_index)
+{
+    if (!mikupan_configuration.number_door_fix_localization)
+    {
+        return physical_index;
+    }
+
+    return physical_index == 0 ? 0 : 10 - physical_index;
+}
+
+static void MikuPan_DialKeyLocalizedLabels(int selected_physical, u_char alp_rate)
+{
+    for (int physical = 0; physical < 10; physical++)
+    {
+        const bool selected = physical == selected_physical;
+        const int logical = MikuPan_DialKeyLogicalIndex(physical);
+        const short center_x = spev01_sp_btn[physical].x + spev01_sp_btn[physical].w / 2;
+        const short center_y = spev01_sp_btn[physical].y + spev01_sp_btn[physical].h / 2;
+
+        SPRT_SSCL scale = {
+            .cx = center_x,
+            .cy = center_y,
+            .sw = static_cast<short>(selected ? 98 : 92),
+            .sh = static_cast<short>(selected ? 98 : 92),
+        };
+
+        SPRT_SDAT inset = spev01_sp_btn[physical];
+        inset.pri = 9;
+        inset.alp = selected ? 116 : 66;
+        SimpleDispSprtRGB(&inset, MikuPan_GetHostAddress(EVENT_ADDRESS), 11, NULL, &scale, alp_rate,
+                          selected ? 144 : 92, selected ? 138 : 88, selected ? 128 : 82);
+
+        scale.sw = static_cast<short>(selected ? 90 : 84);
+        scale.sh = static_cast<short>(selected ? 90 : 84);
+        inset.pri = 8;
+        inset.alp = selected ? 148 : 102;
+        SimpleDispSprtRGB(&inset, MikuPan_GetHostAddress(EVENT_ADDRESS), 11, NULL, &scale, alp_rate,
+                          selected ? 16 : 22, selected ? 16 : 22, selected ? 16 : 22);
+
+        const short text_x = center_x - 9;
+        const short text_y = center_y - 12;
+        const short text_alpha = static_cast<short>((selected ? 128 : 72) * alp_rate / 100);
+        const short stroke_alpha = static_cast<short>((selected ? 128 : 90) * alp_rate / 100);
+        const int text_rgb = selected ? 0xf4eee2 : 0xb8b1a5;
+
+        PutNumberYW(0, logical, text_x - 1, text_y, 1.0f, 1.0f, 0x0c0c0c, stroke_alpha, 0x7000, 1, 0);
+        PutNumberYW(0, logical, text_x + 1, text_y, 1.0f, 1.0f, 0x0c0c0c, stroke_alpha, 0x7000, 1, 0);
+        PutNumberYW(0, logical, text_x, text_y - 1, 1.0f, 1.0f, 0x0c0c0c, stroke_alpha, 0x7000, 1, 0);
+        PutNumberYW(0, logical, text_x, text_y + 1, 1.0f, 1.0f, 0x0c0c0c, stroke_alpha, 0x7000, 1, 0);
+        PutNumberYW(0, logical, text_x, text_y, 1.0f, 1.0f, text_rgb, text_alpha, 0x6000, 1, 0);
+    }
+}
+
+static void MikuPan_StarPuzzleMouseInput(void)
+{
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+    if (star_pzl_wrk.mode != STAR_PZL_MODE_SLCT)
+    {
+        return;
+    }
+
+    for (int i = 0; i < 5; i++)
+    {
+        if (i == star_pzl_wrk.empty
+            || star_pzl_wrk.line[i][star_pzl_wrk.empty] == 0xff)
+        {
+            continue;
+        }
+
+        if (MikuPan_LegacyMouseHit(spev00_stn_pos[i][0], spev00_stn_pos[i][1], 65.0f, 62.0f))
+        {
+            if (mouse.moved && star_pzl_wrk.slct_no != i)
+            {
+                star_pzl_wrk.slct_no = i;
+                star_pzl_wrk.time = 30;
+                SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 0);
+            }
+
+            if (mouse.left_pressed)
+            {
+                star_pzl_wrk.slct_no = i;
+                MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+            }
+            break;
+        }
+    }
+
+    if (mouse.right_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+    }
+    else if (mouse.middle_pressed
+             || (mouse.left_pressed && MikuPan_LegacyMouseHit(28.0f, 356.0f, 128.0f, 28.0f)))
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CIRCLE);
+    }
+}
+
+static void MikuPan_DialKeyDoorMouseInput(void)
+{
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+    if (dkey_wrk.mode != DIAL_KEY_MODE_SLCT)
+    {
+        return;
+    }
+
+    for (int physical = 0; physical < 10; physical++)
+    {
+        SPRT_SDAT *button = &spev01_sp_btn[physical];
+        if (!MikuPan_LegacyMouseHit(button->x, button->y, button->w, button->h))
+        {
+            continue;
+        }
+
+        const int logical = MikuPan_DialKeyLogicalIndex(physical);
+        if (mouse.moved && dkey_wrk.slct_no != logical)
+        {
+            dkey_wrk.slct_no = logical;
+            SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 0);
+        }
+
+        if (mouse.left_pressed)
+        {
+            dkey_wrk.slct_no = logical;
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+        }
+        break;
+    }
+
+    if (mouse.right_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+    }
+}
+
+static void MikuPan_DollPuzzleMouseInput(void)
+{
+    static const short centers[9][2] = {
+        {187, 80}, {307, 80}, {426, 80},
+        {172, 155}, {307, 155}, {442, 155},
+        {160, 242}, {307, 242}, {453, 242}
+    };
+
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+
+    if (spev_wrk.mode == 10)
+    {
+        const int stage = spev_wrk.count;
+        int best = -1;
+        int best_distance = 0x7fffffff;
+        for (int i = 0; i < 9; i++)
+        {
+            if (evdl_dat[stage].order[i] == 0xff)
+            {
+                continue;
+            }
+
+            const int dx = (int)mouse.x - centers[i][0];
+            const int dy = (int)mouse.y - centers[i][1];
+            const int distance = dx * dx + dy * dy;
+            if (distance < best_distance && distance < 6400)
+            {
+                best = i;
+                best_distance = distance;
+            }
+        }
+
+        if (best >= 0)
+        {
+            if (mouse.moved && spev_wrk.csr[0] != best)
+            {
+                spev_wrk.csr[0] = best;
+                spev_wrk.csr[1] = 0;
+                spev_wrk.time = 20;
+                SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 0);
+            }
+            if (mouse.left_pressed)
+            {
+                spev_wrk.csr[0] = best;
+                MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+            }
+        }
+
+        if (mouse.right_pressed)
+        {
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+        }
+    }
+    else if (spev_wrk.mode == 11 || spev_wrk.mode == 12)
+    {
+        if (mouse.moved)
+        {
+            if (MikuPan_LegacyMouseHit(175.0f, 350.0f, 90.0f, 52.0f))
+            {
+                spev_wrk.mode = 11;
+            }
+            else if (MikuPan_LegacyMouseHit(275.0f, 350.0f, 90.0f, 52.0f))
+            {
+                spev_wrk.mode = 12;
+            }
+        }
+
+        if (mouse.left_pressed
+            && (MikuPan_LegacyMouseHit(175.0f, 350.0f, 90.0f, 52.0f)
+                || MikuPan_LegacyMouseHit(275.0f, 350.0f, 90.0f, 52.0f)))
+        {
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+        }
+        else if (mouse.right_pressed)
+        {
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+        }
+    }
+}
+
+static void MikuPan_ButsuzoPuzzleMouseInput(void)
+{
+    static const short target_centers[9][2] = {
+        {136, 360}, {142, 313}, {147, 273},
+        {222, 360}, {222, 313}, {222, 273},
+        {306, 360}, {295, 313}, {291, 273}
+    };
+
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+
+    if (spev_wrk.mode == 4)
+    {
+        int selected = -1;
+        int best_distance = 0x7fffffff;
+        if (mouse.y >= 0.0f && mouse.y < 190.0f)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                if (evbtz_dat[i].use_flg != 0)
+                {
+                    continue;
+                }
+
+                const int center_x = spev04_sp_bd1[i].x + spev04_sp_bd1[i].w / 2;
+                const int distance = abs((int)mouse.x - center_x);
+                if (distance < best_distance && distance <= 50)
+                {
+                    selected = i;
+                    best_distance = distance;
+                }
+            }
+        }
+
+        if (selected >= 0)
+        {
+            if (mouse.moved && spev_wrk.csr[0] != selected)
+            {
+                spev_wrk.csr[0] = selected;
+                spev_wrk.time = 20;
+                SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 0);
+            }
+            if (mouse.left_pressed)
+            {
+                spev_wrk.csr[0] = selected;
+                MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+            }
+        }
+
+        if (mouse.right_pressed)
+        {
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+        }
+    }
+    else if (spev_wrk.mode == 5)
+    {
+        int best = -1;
+        int best_distance = 0x7fffffff;
+        for (int i = 0; i < 9; i++)
+        {
+            const int dx = (int)mouse.x - target_centers[i][0];
+            const int dy = (int)mouse.y - target_centers[i][1];
+            const int distance = dx * dx + dy * dy;
+            if (distance < best_distance && distance < 1200)
+            {
+                best = i;
+                best_distance = distance;
+            }
+        }
+
+        if (best >= 0)
+        {
+            if (mouse.moved && spev_wrk.csr[1] != best * 2)
+            {
+                spev_wrk.csr[1] = best * 2;
+                evbtz_dat[spev_wrk.csr[0]].set_place = best;
+                spev_wrk.time = 20;
+                SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 0);
+            }
+            if (mouse.left_pressed)
+            {
+                spev_wrk.csr[1] = best * 2;
+                evbtz_dat[spev_wrk.csr[0]].set_place = best;
+                MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+            }
+        }
+
+        if (mouse.right_pressed)
+        {
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+        }
+    }
+    else if (spev_wrk.mode == 6 || spev_wrk.mode == 7)
+    {
+        int selected = -1;
+        if (MikuPan_LegacyMouseHit(100.0f, 348.0f, 100.0f, 52.0f))
+        {
+            selected = 6;
+        }
+        else if (MikuPan_LegacyMouseHit(190.0f, 348.0f, 100.0f, 52.0f))
+        {
+            selected = 7;
+        }
+
+        if (selected >= 0)
+        {
+            if (mouse.moved && spev_wrk.mode != selected)
+            {
+                spev_wrk.mode = selected;
+                SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 0);
+            }
+            if (mouse.left_pressed)
+            {
+                spev_wrk.mode = selected;
+                MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+            }
+        }
+
+        if (mouse.right_pressed)
+        {
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+        }
+    }
+}
+
+static void MikuPan_LightsOutMouseInput(void)
+{
+    MikuPan_LegacyMouseState mouse;
+    if (!MikuPan_LegacyMouseGetState(&mouse))
+    {
+        return;
+    }
+    if (spev_wrk.mode != 4)
+    {
+        return;
+    }
+
+    for (int i = 0; i < 6; i++)
+    {
+        SPRT_SDAT *candle = &spev20_sp_cdl[i];
+        if (!MikuPan_LegacyMouseHit(candle->x, candle->y, candle->w, candle->h))
+        {
+            continue;
+        }
+
+        if (mouse.moved && spev_wrk.csr[0] != i)
+        {
+            spev_wrk.csr[0] = i;
+            CsrClear(&spev_wrk.csr[1]);
+            SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 0);
+        }
+        if (mouse.left_pressed)
+        {
+            spev_wrk.csr[0] = i;
+            MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CROSS);
+        }
+        break;
+    }
+
+    if (mouse.right_pressed)
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_TRIANGLE);
+    }
+    else if (mouse.middle_pressed
+             || (mouse.left_pressed && MikuPan_LegacyMouseHit(28.0f, 68.0f, 150.0f, 32.0f)))
+    {
+        MikuPan_QueueLegacyControllerButton(MIKUPAN_CONTROLLER_CIRCLE);
+    }
+}
 
 SPRT_SROT spev03_dol_left = {
     .cx = 0x7fff,
@@ -841,6 +1254,7 @@ void StarPuzzleDataSet(int pzl_no)
 int StarPuzzleMain(int pzl_no)
 {
     int i; int j; int tmp0;
+    MikuPan_StarPuzzleMouseInput();
     u_char stone_odr[5] = {0, 1, 3, 4, 2};
 
     switch(star_pzl_wrk.mode)
@@ -2301,6 +2715,7 @@ void DialKeyDoorDataSet(int door_no)
 int DialKeyDoorMain()
 {
     int i;
+    MikuPan_DialKeyDoorMouseInput();
 
     switch(dkey_wrk.mode)
     {
@@ -2451,7 +2866,11 @@ int DialKeyDoorMain()
             (Ana2PadDirCnt(1) > 25 && (Ana2PadDirCnt(1) % 5) == 1)
         )
         {
-            if (dkey_wrk.slct_no != 0)
+            if (mikupan_configuration.number_door_fix_localization)
+            {
+                dkey_wrk.slct_no = (dkey_wrk.slct_no + 1) % 10;
+            }
+            else if (dkey_wrk.slct_no != 0)
             {
                 dkey_wrk.slct_no--;
             }
@@ -2469,7 +2888,11 @@ int DialKeyDoorMain()
             (Ana2PadDirCnt(3) > 25 && (Ana2PadDirCnt(3) % 5) == 1)
         )
         {
-            if (dkey_wrk.slct_no != 9)
+            if (mikupan_configuration.number_door_fix_localization)
+            {
+                dkey_wrk.slct_no = dkey_wrk.slct_no == 0 ? 9 : dkey_wrk.slct_no - 1;
+            }
+            else if (dkey_wrk.slct_no != 9)
             {
                 dkey_wrk.slct_no++;
             }
@@ -2692,10 +3115,11 @@ void DialKeyDoorDisp()
         SimpleDispSprt(&spev01_sp_bak[i], MikuPan_GetHostAddress(EVENT_ADDRESS), i, NULL, NULL, alp_rate);
     }
 
-    sscl.cx = spev01_sp_btp[dkey_wrk.slct_no].x + spev01_sp_btp[i].w + 24;
-    sscl.cy = spev01_sp_btp[dkey_wrk.slct_no].y + spev01_sp_btp[i].h + 20;
+    const int selected_physical = MikuPan_DialKeyPhysicalIndex(dkey_wrk.slct_no);
+    sscl.cx = spev01_sp_btp[selected_physical].x + spev01_sp_btp[selected_physical].w / 2;
+    sscl.cy = spev01_sp_btp[selected_physical].y + spev01_sp_btp[selected_physical].h / 2;
 
-    SimpleDispSprtDatCopy(spev01_sp_btf + dkey_wrk.slct_no, &ssd);
+    SimpleDispSprtDatCopy(spev01_sp_btf + selected_physical, &ssd);
 
     ssd.alp = spev_wrk.csr[2];
 
@@ -2703,7 +3127,7 @@ void DialKeyDoorDisp()
 
     for (i = 0; i < 10; i++)
     {
-        if (dkey_wrk.slct_no == i && dkey_wrk.mode == DIAL_KEY_MODE_PUSH)
+        if (selected_physical == i && dkey_wrk.mode == DIAL_KEY_MODE_PUSH)
         {
             SimpleDispSprt(&spev01_sp_btp[i], MikuPan_GetHostAddress(EVENT_ADDRESS), 17, NULL, NULL, alp_rate);
         }
@@ -2711,6 +3135,11 @@ void DialKeyDoorDisp()
         {
             SimpleDispSprt(&spev01_sp_btn[i], MikuPan_GetHostAddress(EVENT_ADDRESS), 11, NULL, NULL, alp_rate);
         }
+    }
+
+    if (mikupan_configuration.number_door_fix_localization)
+    {
+        MikuPan_DialKeyLocalizedLabels(selected_physical, alp_rate);
     }
 
     for (i = 0; i < dkey_dat[dkey_wrk.door_no].dial_num; i++)
@@ -3313,6 +3742,7 @@ void DollPzlInit()
 void DollPzlMain()
 {
     int no;
+    MikuPan_DollPuzzleMouseInput();
     int i;
     static int blink_dir = 1;
 
@@ -4336,6 +4766,7 @@ void ButsuzoPzlInit()
 void ButsuzoPzlMain()
 {
     int i;
+    MikuPan_ButsuzoPuzzleMouseInput();
     static int t_counter = 0;
 
     switch(spev_wrk.mode)
@@ -4461,10 +4892,10 @@ void ButsuzoPzlMain()
                     break;
                 }
 
-                if (i == 6) // bug ??? should have been outside the loop ???
-                {
-                    spev_wrk.mode = 5;
-                }
+            }
+            if (i == 6)
+            {
+                spev_wrk.mode = 5;
             }
             SeStartFix(SE_CSR0, 0, 0x1000, 0x1000, 0);
         }
@@ -5529,6 +5960,7 @@ void LightsOutInit()
 void LightsOutMain()
 {
     int no;
+    MikuPan_LightsOutMouseInput();
     int i;
 
     no = spev_wrk.count;

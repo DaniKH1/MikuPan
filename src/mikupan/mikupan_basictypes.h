@@ -243,6 +243,7 @@ typedef struct
     int show_fps;
     int minimap_enabled;
     int flashlight_style;
+    int number_door_fix_localization;
     int keep_finder_raised_for_apparitions;
     int title_room_background;
     int title_dither;

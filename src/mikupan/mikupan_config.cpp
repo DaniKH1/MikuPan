@@ -68,6 +68,7 @@ MikuPan_Config mikupan_configuration = {
     0,
     MIKUPAN_FLASHLIGHT_STYLE_PS2,
     0,
+    0,
     1,
     1,
     {
@@ -357,6 +358,8 @@ void MikuPan_ConfigurationValidate(void)
     {
         mikupan_configuration.flashlight_style = MIKUPAN_FLASHLIGHT_STYLE_PS2;
     }
+    mikupan_configuration.number_door_fix_localization =
+        mikupan_configuration.number_door_fix_localization ? 1 : 0;
     mikupan_configuration.keep_finder_raised_for_apparitions =
         mikupan_configuration.keep_finder_raised_for_apparitions ? 1 : 0;
     mikupan_configuration.title_room_background =

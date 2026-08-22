@@ -159,6 +159,9 @@ typedef struct
 
 SDL_AppResult MikuPan_Init();
 void MikuPan_SetupOpenGLContext();
+void MikuPan_ApplyGameCursor(void);
+void MikuPan_SetGameCursorVisible(int visible);
+int MikuPan_IsGameCursorVisible(void);
 void MikuPan_Clear();
 void MikuPan_CreateInternalBuffer(int w, int h, int msaa);
 void MikuPan_DestroyInternalBuffer();
@@ -379,6 +382,7 @@ void MikuPan_UnbindMirrorTextureFromAuxSlot(void);
 /// render-state setup knows to cull front faces (the reflection flips winding).
 void MikuPan_SetMirrorReflectionPass(int active);
 void MikuPan_Setup3D();
+
 void MikuPan_Shutdown();
 void MikuPan_EndFrame();
 void MikuPan_SetModelTransformMatrix(sceVu0FVECTOR* m);

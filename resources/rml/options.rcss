@@ -813,6 +813,7 @@ button.controller-focus {
 #font-scale-stepper,
 #flashlight-style-picker,
 #keep-finder-raised-input,
+#number-door-fix-localization-input,
 #minimap-enabled-input,
 #finder-dpad-film-swap-input,
 #mirror-stone-hud-input,

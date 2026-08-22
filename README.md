@@ -41,6 +41,24 @@ You need either `MinGW` or `Cygwin` with `gcc` and `CMake` in order to build `Mi
 ## Linux
 `GCC` and `CMake` required to build `MikuPan`.
 
+## macOS
+macOS is not officially supported: the maintainers have no Apple hardware to
+actively test on, so it may break between releases. It has been verified to
+build and run on Apple Silicon by contributors. Building needs the Xcode Command Line Tools
+(`xcode-select --install`) plus `cmake`, `ninja` and `git` from Homebrew:
+
+```sh
+brew install cmake ninja git
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build
+```
+
+SDL3, FFmpeg and SDL_shadercross are fetched and compiled from source during the
+build; the first configure/build is slow because shadercross includes
+DirectXShaderCompiler. The renderer uses the Metal backend of SDL_GPU, so no
+Vulkan/MoltenVK install is needed. The result is a bare `build/MikuPan/MikuPan`
+executable rather than a `.app` bundle.
+
 ## Android
 Android builds use the NDK CMake toolchain and produce a debug-signed APK with
 the `MikuPan-apk` target. Requirements: Android SDK 35 or newer, Android NDK
@@ -148,9 +166,6 @@ On Android 11 and newer, normal file managers usually cannot write to
 `/sdcard/Android/data/...`. For a user-managed folder, put the files somewhere
 like `Documents/MikuPan`, then use MikuPan's in-game folder picker to grant
 access to that folder.
-
-## OSX
-Not yet supported due to lack of hardware to test it, but it should be easily supported.
 
 # Special Thanks
 Thank you to prinsep for making the logo!

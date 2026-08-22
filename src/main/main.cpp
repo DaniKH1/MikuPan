@@ -127,6 +127,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 
     MikuPan_Clear();
     MikuPan_StartFrameUi();
+    MikuPan_LegacyMouseBeginFrame();
 
     MikuPan_FlushTextureCache();
 
