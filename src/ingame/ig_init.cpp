@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "graphics/graph2d/effect_scr.h"
+#include "graphics/graph2d/effect_sub.h"
 #include "graphics/graph3d/gra3d.h"
 #include "graphics/graph3d/load3d.h"
 #include "graphics/motion/mdlwork.h"
@@ -238,7 +239,8 @@ int LoadStartDataSet()
             return 0;
         }
 
-        SetBlackIn2(0x3c);
+        SetParam(0x80, 1, 0, 0, 0, 0);
+        LoadUncoverBegin();
 
         ingame_wrk.mode = INGAME_MODE_NOMAL;
         ingame_wrk.stts &= 0xd7;

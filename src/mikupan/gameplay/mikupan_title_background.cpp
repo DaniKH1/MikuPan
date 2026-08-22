@@ -114,7 +114,7 @@ static const TITLE_BG_PRESET title_bg_presets[] = {
     {
         .msn_no = 0,
         .room_no = 0,
-        .audio_file_no = 1540,
+        .audio_file_no = AB013_STR,
         .cycle_seconds = 20,
         .camera = {
             .camera_p = {2853.2f, -526.0f, 1363.5f},
@@ -138,7 +138,7 @@ static const TITLE_BG_PRESET title_bg_presets[] = {
     {
         .msn_no = 0,
         .room_no = 2,
-        .audio_file_no = 1540,
+        .audio_file_no = AB013_STR,
         .cycle_seconds = 50,
         .camera = {
             .camera_p = {500.0f, -495.9f, 2246.1f},
@@ -162,7 +162,7 @@ static const TITLE_BG_PRESET title_bg_presets[] = {
     {
         .msn_no = 0,
         .room_no = 10,
-        .audio_file_no = 1540,
+        .audio_file_no = AB013_STR,
         .cycle_seconds = 50,
         .camera = {
             .camera_p = {1386.4f, -457.7f, 3307.6f},
@@ -186,7 +186,7 @@ static const TITLE_BG_PRESET title_bg_presets[] = {
     {
         .msn_no = 0,
         .room_no = 25,
-        .audio_file_no = 1540,
+        .audio_file_no = AB013_STR,
         .cycle_seconds = 40,
         .camera = {
             .camera_p = {5210.0f, -1324.0f, 3939.8f},
@@ -237,7 +237,7 @@ static float title_bg_camera_lerp_seconds = 20.0f;
 static int title_bg_camera_lerp_enabled = 1;
 static int title_bg_camera_lerp_timer = 0;
 static int title_debug_window_visible = 0;
-static int title_bgm_file_no = 1540;
+static int title_bgm_file_no = AB013_STR;
 static int title_bgm_playing_file_no = -1;
 static int title_bg_effect_load_id = -1;
 static int title_bg_map_load_id = -1;

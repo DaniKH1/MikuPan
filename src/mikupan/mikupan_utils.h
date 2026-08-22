@@ -32,4 +32,6 @@ int MikuPan_ClampInt(int value, int min_value, int max_value);
 float MikuPan_ClampFloat(float value, float min_value, float max_value);
 bool MikuPan_IsFiniteFloat(float value);
 
+int MikuPan_GetUiLanguage(void);
+
 #endif//MIKUPAN_MIKUPAN_UTILS_H

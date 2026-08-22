@@ -59,14 +59,14 @@ int ZeroHourAppearMain()
             LoadReq(M040_MAGATOKI_MDL, ANIM_MODEL_TYPE_8_ADDRESS_0);
             LoadReq(M040_MAGATOKI_ANM, ANIM_MODEL_TYPE_9_ADDRESS_0);
 
-            LoadEneDmgTex(40, (u_int *)MikuPan_GetHostPointer(ENE_DMG_TEX_TYPE_9_ADDRESS_0));
+            LoadEneDmgTex(M040_MAGATOKI, (u_int *)MikuPan_GetHostPointer(ENE_DMG_TEX_TYPE_9_ADDRESS_0));
 
             if (plyr_wrk.mode == 1)
             {
                 FinderEndSet();
             }
 
-            AdpcmPreMagatokiFadeOut(40);
+            AdpcmPreMagatokiFadeOut(M040_MAGATOKI);
 
             ingame_wrk.stts |= 0x80;
 
@@ -76,8 +76,8 @@ int ZeroHourAppearMain()
     case ZH_READY:
         if (IsLoadEndAll() != 0)
         {
-            motInitEnemyMdl((u_int *)MikuPan_GetHostPointer(ANIM_MODEL_TYPE_8_ADDRESS_0), 40);
-            motInitEnemyAnm((u_int *)MikuPan_GetHostPointer(ANIM_MODEL_TYPE_9_ADDRESS_0), 40, 28);
+            motInitEnemyMdl((u_int *)MikuPan_GetHostPointer(ANIM_MODEL_TYPE_8_ADDRESS_0), M040_MAGATOKI);
+            motInitEnemyAnm((u_int *)MikuPan_GetHostPointer(ANIM_MODEL_TYPE_9_ADDRESS_0), M040_MAGATOKI, A040_MAGATOKI);
 
             ap_wrk.zh_mode = ZH_READY2;
         }
@@ -323,7 +323,7 @@ void ZeroHourAfterPosReset()
 
 void ZeroHourOutReq()
 {
-    motReleaseAniMdlBuf(28, (u_int *)ANIM_MODEL_TYPE_9_ADDRESS_0);
+    motReleaseAniMdlBuf(A040_MAGATOKI, (u_int *)ANIM_MODEL_TYPE_9_ADDRESS_0);
 
     ap_wrk.zh_efct = 0;
 

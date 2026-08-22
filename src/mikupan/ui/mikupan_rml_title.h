@@ -33,6 +33,7 @@ int MikuPan_RmlTitleConsumeSelection(void);
 void MikuPan_RmlTitleNotifySettingsOpened(int selection);
 int MikuPan_RmlTitleConsumeSettingsReturnSelection(void);
 int MikuPan_RmlTitleIsInputCooldownActive(void);
+void MikuPan_RmlTitleApplyLanguage(int language);
 
 #ifdef __cplusplus
 }

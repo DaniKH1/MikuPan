@@ -448,6 +448,69 @@ static void MikuPan_AddRenderResolutionOption(int mode, int width, int height,
     resolution_label_ptrs[index] = resolution_labels[index];
 }
 
+static const char* const kMatchWindowLabel5[5] = {
+    "Match Window (100%)",
+    "Fenêtre (100%)",
+    "Fenstergröße (100%)",
+    "Tamaño de ventana (100%)",
+    "Dimensione finestra (100%)",
+};
+static const char* const kPercentOfWindowLabel5[5] = {
+    "%d%% of Window",
+    "%d%% de la fenêtre",
+    "%d%% des Fensters",
+    "%d%% de la ventana",
+    "%d%% della finestra",
+};
+static const char* const kPs2NativeLabel5[5] = {
+    "PS2 Native (%d x %d)",
+    "PS2 natif (%d x %d)",
+    "PS2 nativ (%d x %d)",
+    "PS2 nativo (%d x %d)",
+    "PS2 nativo (%d x %d)",
+};
+
+static void MikuPan_ApplyRenderResolutionLabels(void)
+{
+    const int lang = MikuPan_GetUiLanguage();
+
+    for (int i = 0; i < resolution_count; i++)
+    {
+        const int mode = resolution_mode_list[i];
+        char label[64];
+
+        if (mode == MIKUPAN_RENDER_RESOLUTION_MATCH_WINDOW)
+        {
+            snprintf(label, sizeof(label), "%s", kMatchWindowLabel5[lang]);
+        }
+        else if (mode == MIKUPAN_RENDER_RESOLUTION_WINDOW_SCALE)
+        {
+            snprintf(label, sizeof(label), kPercentOfWindowLabel5[lang],
+                     resolution_scale_percent_list[i]);
+        }
+        else if (resolution_list[i].width > 0 && resolution_list[i].height > 0
+                 && MikuPan_IsPs2ScaleResolution(resolution_list[i].width,
+                                                 resolution_list[i].height)
+                 && resolution_list[i].width == PS2_RESOLUTION_X_INT)
+        {
+            snprintf(label, sizeof(label), kPs2NativeLabel5[lang],
+                     resolution_list[i].width, resolution_list[i].height);
+        }
+        else
+        {
+            continue;
+        }
+
+        snprintf(resolution_labels[i], sizeof(resolution_labels[i]), "%s", label);
+        resolution_label_ptrs[i] = resolution_labels[i];
+    }
+}
+
+void MikuPan_RefreshRenderResolutionListLabels(void)
+{
+    MikuPan_ApplyRenderResolutionLabels();
+}
+
 static void MikuPan_AddWindowScaleResolution(int percent)
 {
     char label[64];
@@ -558,6 +621,8 @@ static void MikuPan_PopulateResolutionList(SDL_DisplayID display,
             resolution_selected = i;
         }
     }
+
+    MikuPan_ApplyRenderResolutionLabels();
 }
 
 static void MikuPan_AddWindowSize(int w, int h)
@@ -683,6 +748,34 @@ static void MikuPan_FormatWindowSizeLabel(char* buffer, int buffer_size,
              width, height, suffix != NULL ? suffix : "");
 }
 
+static const char* const kDesktopSuffix5[5] = {
+    " [Desktop]", " [Bureau]", " [Desktop]", " [Escritorio]", " [Desktop]",
+};
+
+static void MikuPan_ApplyWindowSizeLabels(const SDL_DisplayMode* current_mode)
+{
+    for (int i = 0; i < window_size_count; i++)
+    {
+        const int is_desktop = current_mode != NULL
+            && window_size_list[i].width == current_mode->w
+            && window_size_list[i].height == current_mode->h;
+
+        const char* suffix = is_desktop ? kDesktopSuffix5[MikuPan_GetUiLanguage()] : "";
+        MikuPan_FormatWindowSizeLabel(window_size_labels[i],
+                                      sizeof(window_size_labels[i]),
+                                      window_size_list[i].width,
+                                      window_size_list[i].height,
+                                      suffix);
+        window_size_label_ptrs[i] = window_size_labels[i];
+
+        if (window_size_list[i].width == mikupan_configuration.renderer.window.width
+            && window_size_list[i].height == mikupan_configuration.renderer.window.height)
+        {
+            window_size_selected = i;
+        }
+    }
+}
+
 static void MikuPan_PopulateWindowSizeList(SDL_DisplayID display,
                                            const SDL_DisplayMode* current_mode)
 {
@@ -714,29 +807,15 @@ static void MikuPan_PopulateWindowSizeList(SDL_DisplayID display,
               sizeof(MikuPan_Resolution), CompareResolutionAsc);
     }
 
-    for (int i = 0; i < window_size_count; i++)
-    {
-        const int is_desktop = current_mode != NULL
-            && window_size_list[i].width == current_mode->w
-            && window_size_list[i].height == current_mode->h;
-        const int is_standard = MikuPan_IsStandardWindowSize(
-            window_size_list[i].width,
-            window_size_list[i].height);
+    MikuPan_ApplyWindowSizeLabels(current_mode);
+}
 
-        const char* suffix = is_desktop ? " [Desktop]" : "";
-        MikuPan_FormatWindowSizeLabel(window_size_labels[i],
-                                      sizeof(window_size_labels[i]),
-                                      window_size_list[i].width,
-                                      window_size_list[i].height,
-                                      suffix);
-        window_size_label_ptrs[i] = window_size_labels[i];
-
-        if (window_size_list[i].width == mikupan_configuration.renderer.window.width
-            && window_size_list[i].height == mikupan_configuration.renderer.window.height)
-        {
-            window_size_selected = i;
-        }
-    }
+void MikuPan_RefreshWindowSizeListLabels(void)
+{
+    SDL_DisplayID primary = SDL_GetPrimaryDisplay();
+    const SDL_DisplayMode* current_mode =
+        (primary != 0) ? SDL_GetCurrentDisplayMode(primary) : NULL;
+    MikuPan_ApplyWindowSizeLabels(current_mode);
 }
 
 static const char* MikuPan_GpuDriverDisplayName(const char* name)
@@ -756,10 +835,37 @@ static const char* MikuPan_GpuDriverDisplayName(const char* name)
     return name;
 }
 
+static const char* const kGpuAutoLabel5[5] = {
+    "Auto", "Auto", "Automatisch", "Automático", "Automatico",
+};
+static const char* const kGpuUnsupportedSuffix5[5] = {
+    " (unsupported)", " (non pris en charge)", " (nicht unterstützt)",
+    " (no compatible)", " (non supportato)",
+};
+
+static void MikuPan_ApplyGpuDriverLabels(void)
+{
+    const int lang = MikuPan_GetUiLanguage();
+
+    snprintf(gpu_driver_labels[0], sizeof(gpu_driver_labels[0]), "%s",
+             kGpuAutoLabel5[lang]);
+
+    for (int idx = 1; idx < gpu_driver_count; idx++)
+    {
+        snprintf(gpu_driver_labels[idx], sizeof(gpu_driver_labels[idx]),
+                 "%s%s", MikuPan_GpuDriverDisplayName(gpu_driver_names[idx]),
+                 gpu_driver_supported[idx] ? "" : kGpuUnsupportedSuffix5[lang]);
+    }
+}
+
+void MikuPan_RefreshGpuDriverListLabels(void)
+{
+    MikuPan_ApplyGpuDriverLabels();
+}
+
 static void MikuPan_PopulateGpuDriverList(void)
 {
     gpu_driver_names[0][0] = '\0';
-    snprintf(gpu_driver_labels[0], sizeof(gpu_driver_labels[0]), "Auto");
     gpu_driver_supported[0] = 1;
     gpu_driver_count = 1;
     gpu_driver_selected = 0;
@@ -779,9 +885,6 @@ static void MikuPan_PopulateGpuDriverList(void)
         gpu_driver_supported[idx] =
             SDL_GPUSupportsShaderFormats(MIKUPAN_GPU_SHADER_FORMATS, name) ? 1
                                                                            : 0;
-        snprintf(gpu_driver_labels[idx], sizeof(gpu_driver_labels[idx]),
-                 "%s%s", MikuPan_GpuDriverDisplayName(name),
-                 gpu_driver_supported[idx] ? "" : " (unsupported)");
 
         if (SDL_strcasecmp(name, mikupan_configuration.renderer.gpu_driver)
             == 0)
@@ -791,6 +894,8 @@ static void MikuPan_PopulateGpuDriverList(void)
 
         gpu_driver_count++;
     }
+
+    MikuPan_ApplyGpuDriverLabels();
 }
 
 static void MikuPan_UiGpuBackendCombo(void)
@@ -1573,7 +1678,10 @@ int MikuPan_IsSuperSamplingEnabled(void)
 
 const char* MikuPan_GetMSAAOptionLabel(int index)
 {
-    static char labels[sizeof(msaa_list) / sizeof(msaa_list[0])][8];
+    static const char* const kOffLabel5[5] = {
+        "Off", "Désactivé", "Aus", "Desactivado", "Disattivato",
+    };
+    static char labels[sizeof(msaa_list) / sizeof(msaa_list[0])][16];
     if (index < 0 || index >= MikuPan_GetMSAAOptionCount())
     {
         return NULL;
@@ -1581,7 +1689,8 @@ const char* MikuPan_GetMSAAOptionLabel(int index)
 
     if (msaa_list[index] == 0)
     {
-        snprintf(labels[index], sizeof(labels[index]), "Off");
+        snprintf(labels[index], sizeof(labels[index]), "%s",
+                 kOffLabel5[MikuPan_GetUiLanguage()]);
     }
     else
     {
@@ -2078,13 +2187,16 @@ int MikuPan_GetSelectedDitherModeOption(void)
 
 const char* MikuPan_GetDitherModeOptionLabel(int index)
 {
-    static const char* labels[] = {"Native", "Soft"};
+    static const char* const labels5[2][5] = {
+        {"Native", "Natif", "Nativ", "Nativo", "Nativo"},
+        {"Soft", "Doux", "Weich", "Suave", "Morbido"},
+    };
     if (index < 0 || index >= MikuPan_GetDitherModeOptionCount())
     {
         return NULL;
     }
 
-    return labels[index];
+    return labels5[index][MikuPan_GetUiLanguage()];
 }
 
 int MikuPan_SelectDitherModeOption(int index)
@@ -2146,10 +2258,10 @@ int MikuPan_GetSelectedFlashlightStyleOption(void)
 
 const char* MikuPan_GetFlashlightStyleOptionLabel(int index)
 {
-    static const char* labels[] = {
-        "PS2 Style",
-        "Xbox Style",
-        "Off",
+    static const char* const labels5[3][5] = {
+        {"PS2 Style", "Style PS2", "PS2-Stil", "Estilo PS2", "Stile PS2"},
+        {"Xbox Style", "Style Xbox", "Xbox-Stil", "Estilo Xbox", "Stile Xbox"},
+        {"Off", "Désactivé", "Aus", "Desactivado", "Disattivato"},
     };
 
     if (index < 0 || index >= MikuPan_GetFlashlightStyleOptionCount())
@@ -2157,7 +2269,7 @@ const char* MikuPan_GetFlashlightStyleOptionLabel(int index)
         return "";
     }
 
-    return labels[index];
+    return labels5[index][MikuPan_GetUiLanguage()];
 }
 
 int MikuPan_SelectFlashlightStyleOption(int index)

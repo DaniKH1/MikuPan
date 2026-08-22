@@ -16,6 +16,7 @@
 #include "mikupan/gs/mikupan_texture_manager_c.h"
 #include "mikupan/mikupan_memory.h"
 #include "mikupan/rendering/mikupan_renderer.h"
+#include "os/eeiop/cdvd/eecdvd.h"
 
 u_int *tm2_end_pkt = NULL;
 
@@ -324,6 +325,50 @@ u_int* ChainPK2Direct(u_int *pkt_addr, u_int *tm2_addr)
     return pkt_addr;
 }
 
+#ifdef BUILD_EU_VERSION
+// Tracks which language's font was last uploaded, and polls pending
+// language-reload requests so the GPU stays in sync regardless of screen.
+static int s_font_tex_uploaded_language = -1;
+
+int MikuPan_FontTexNeedsRebuild()
+{
+    return s_font_tex_uploaded_language != sys_wrk.language;
+}
+
+static int s_font_reload_pending_id = -1;
+static int s_font_reload_pending_language = -1;
+
+int MikuPan_RequestFontReload(int base_file_no, u_int addr)
+{
+    int id = LoadReqLanguage(base_file_no, addr);
+    s_font_reload_pending_id = id;
+    s_font_reload_pending_language = sys_wrk.language;
+    return id;
+}
+
+void MikuPan_FontTexPollPendingReload()
+{
+    if (s_font_reload_pending_id < 0)
+    {
+        return;
+    }
+
+    if (!IsLoadEnd(s_font_reload_pending_id))
+    {
+        return;
+    }
+
+    int language = s_font_reload_pending_language;
+    s_font_reload_pending_id = -1;
+    s_font_reload_pending_language = -1;
+
+    if (language != s_font_tex_uploaded_language)
+    {
+        MakeFontTexSendPacket();
+    }
+}
+#endif
+
 void MakeFontTexSendPacket()
 {
     SPRITE_DATA dummy;
@@ -351,6 +396,10 @@ void MakeFontTexSendPacket()
     tm2_end_pkt = ChainPK2Direct(pkt_addr, (u_int *)addr);
 
     MikuPan_SetupFntTexture();
+
+#ifdef BUILD_EU_VERSION
+    s_font_tex_uploaded_language = sys_wrk.language;
+#endif
 }
 
 void CallFontTexSendPacket()

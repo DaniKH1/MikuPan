@@ -233,6 +233,7 @@ typedef struct AudioState
 static int readMpeg(VideoDecoder *vd, ReadBuffer *rb);
 static int beginMovPlayback(char *name);
 static int stepMovPlayback(void);
+static void beginMovFadeIn(void);
 static void endMovPlayback(void);
 static void restoreAfterMovPlayback(void);
 static double now_sec();
@@ -445,6 +446,8 @@ static int beginMovPlayback(char *name)
         return 1;
     }
 
+    beginMovFadeIn();
+
     sceGsSyncPath(0, 0);
     sceGsResetPath();
     sceDmaReset(1);
@@ -638,6 +641,14 @@ static void feedAudio(void)
     }
 }
 
+#define MOVIE_FADE_IN_FRAMES 24
+static int g_mov_fade_frame = MOVIE_FADE_IN_FRAMES;
+
+static void beginMovFadeIn(void)
+{
+    g_mov_fade_frame = 0;
+}
+
 void renderMovFrame(const MikuPan_TextureInfo *ti)
 {
     if (!ti || !ti->id)
@@ -657,7 +668,15 @@ void renderMovFrame(const MikuPan_TextureInfo *ti)
     dst.w = 640.0f;
     dst.h = 448.0f;
 
-    MikuPan_RenderSprite(src, dst, 255, 255, 255, 255,
+    u_char level = 255;
+
+    if (g_mov_fade_frame < MOVIE_FADE_IN_FRAMES)
+    {
+        level = (u_char) ((g_mov_fade_frame * 255) / MOVIE_FADE_IN_FRAMES);
+        g_mov_fade_frame++;
+    }
+
+    MikuPan_RenderSprite(src, dst, level, level, level, 255,
                          (MikuPan_TextureInfo *) ti);
     MikuPan_FlushTexturedSpriteBatch();
 }

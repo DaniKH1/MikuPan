@@ -30,6 +30,7 @@ void MikuPan_RmlModeSelectShowStory(int selected_index,
                                     float opacity);
 int MikuPan_RmlModeSelectConsumeSelection(void);
 int MikuPan_RmlModeSelectConsumeCommand(void);
+void MikuPan_RmlModeSelectApplyLanguage(int language);
 
 #ifdef __cplusplus
 }

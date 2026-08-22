@@ -4571,9 +4571,9 @@ void SetEneDmgEffect1_Sub2(int num)
             if (enedmg_fileno_tbl[ene_wrk[dmg1->enedmg_no].dat->mdl_no][0] != -1)
             {
                 if (
-                    ene_wrk[dmg1->enedmg_no].dat->mdl_no == 42 ||
-                    ene_wrk[dmg1->enedmg_no].dat->mdl_no == 43 ||
-                    ene_wrk[dmg1->enedmg_no].dat->mdl_no == 44
+                    ene_wrk[dmg1->enedmg_no].dat->mdl_no == M042_SYOUKI2 ||
+                    ene_wrk[dmg1->enedmg_no].dat->mdl_no == M043_SYOUKI3 ||
+                    ene_wrk[dmg1->enedmg_no].dat->mdl_no == M044_SYOUKI4
                 )
                 {
                     SetSprFile2(MikuPan_GetHostAddress(ADDRESS_2), 0);

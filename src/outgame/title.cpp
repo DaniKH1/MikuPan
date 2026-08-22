@@ -60,8 +60,10 @@
 #include "mikupan/mikupan_utils.h"
 #include "mikupan/ui/mikupan_ui.h"
 #include "mikupan/ui/mikupan_ui_theme.h"
+#include "mikupan/ui/mikupan_rml_mode_select.h"
 #include "mikupan/ui/mikupan_rml_options.h"
 #include "mikupan/ui/mikupan_rml_save_load.h"
+#include "mikupan/ui/mikupan_rml_save_point.h"
 #include "mikupan/ui/mikupan_rml_title.h"
 
 #include <algorithm>
@@ -3099,6 +3101,12 @@ int SetSelectLanguage(int cur_pos)
                 {
                     sys_wrk.language = 0;
                 }
+
+                MikuPan_RmlTitleApplyLanguage(sys_wrk.language);
+                MikuPan_RmlOptionsApplyLanguage(sys_wrk.language);
+                MikuPan_RmlModeSelectApplyLanguage(sys_wrk.language);
+                MikuPan_RmlSavePointApplyLanguage(sys_wrk.language);
+                MikuPan_RmlSaveLoadApplyLanguage(sys_wrk.language);
             }
             else if (*key_now[0] == 1)
             {
@@ -3112,6 +3120,12 @@ int SetSelectLanguage(int cur_pos)
                 {
                     sys_wrk.language = 4;
                 }
+
+                MikuPan_RmlTitleApplyLanguage(sys_wrk.language);
+                MikuPan_RmlOptionsApplyLanguage(sys_wrk.language);
+                MikuPan_RmlModeSelectApplyLanguage(sys_wrk.language);
+                MikuPan_RmlSavePointApplyLanguage(sys_wrk.language);
+                MikuPan_RmlSaveLoadApplyLanguage(sys_wrk.language);
             }
             else if (*key_now[5] == 1)
             {

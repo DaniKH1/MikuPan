@@ -1,6 +1,8 @@
 #include "mikupan/ui/mikupan_rml_title.h"
 
+#include "main/glob.h"
 #include "mikupan/io/mikupan_file.h"
+#include "mikupan/mikupan_utils.h"
 
 #include "mikupan_version.h"
 
@@ -62,6 +64,7 @@ struct MikuPanRmlTitleState
     Rml::Element* press_button = nullptr;
     Rml::Element* menu_panel = nullptr;
     Rml::Element* exit_dialog = nullptr;
+    Rml::Element* exit_message = nullptr;
     Rml::Element* exit_yes_button = nullptr;
     Rml::Element* exit_no_button = nullptr;
     Rml::Element* build_info = nullptr;
@@ -390,6 +393,7 @@ static bool MikuPan_RmlTitleLoadDocument(void)
     g_title.press_button = MikuPan_RmlTitleGetElement("title-press-button");
     g_title.menu_panel = MikuPan_RmlTitleGetElement("title-menu-panel");
     g_title.exit_dialog = MikuPan_RmlTitleGetElement("title-exit-dialog");
+    g_title.exit_message = MikuPan_RmlTitleGetElement("title-exit-message");
     g_title.exit_yes_button = MikuPan_RmlTitleGetElement("title-exit-yes");
     g_title.exit_no_button = MikuPan_RmlTitleGetElement("title-exit-no");
     g_title.build_info = MikuPan_RmlTitleGetElement("title-build-info");
@@ -471,6 +475,7 @@ bool MikuPan_RmlTitleInit(Rml::Context* context)
     }
 
     g_title.initialized = true;
+    MikuPan_RmlTitleApplyLanguage(MikuPan_GetUiLanguage());
     return true;
 }
 
@@ -610,6 +615,66 @@ int MikuPan_RmlTitleIsInputCooldownActive(void)
 
     g_title_input_cooldown_frames--;
     return 1;
+}
+
+void MikuPan_RmlTitleApplyLanguage(int language)
+{
+    if (!g_title.initialized)
+    {
+        return;
+    }
+
+    static const char* const kMenuLabels[5][5] = {
+        {"New Game", "Load Game", "Album", "Settings", "Exit Game"},
+        {"Nouvelle partie", "Charger", "Album", "Options", "Quitter"},
+        {"Neues Spiel", "Spiel Laden", "Album", "Einstellungen", "Spiel Beenden"},
+        {"Nueva partida", "Cargar partida", "Álbum", "Opciones", "Salir del juego"},
+        {"Nuova partita", "Carica partita", "Album", "Impostazioni", "Esci dal gioco"},
+    };
+
+    const int lang = std::clamp(language, 0, 4);
+    for (int i = 0; i < 5; i++)
+    {
+        Rml::Element* button = g_title.menu_buttons[i];
+        Rml::Element* label = button != nullptr ? button->QuerySelector(".title-menu-label") : nullptr;
+        if (label != nullptr)
+        {
+            label->SetInnerRML(kMenuLabels[lang][i]);
+        }
+    }
+
+    static const char* const kPressStart5[5] = {
+        "Press Start", "Appuyez sur Start", "Start drücken", "Pulsa Start", "Premi Start",
+    };
+    if (g_title.press_button != nullptr)
+    {
+        g_title.press_button->SetInnerRML(kPressStart5[lang]);
+    }
+
+    static const char* const kExitMessage5[5] = {
+        "Exit the game?", "Quitter le jeu ?", "Spiel beenden?", "¿Salir del juego?", "Uscire dal gioco?",
+    };
+    if (g_title.exit_message != nullptr)
+    {
+        g_title.exit_message->SetInnerRML(kExitMessage5[lang]);
+    }
+
+    static const char* const kYes5[5] = {"Yes", "Oui", "Ja", "Sí", "Sì"};
+    static const char* const kNo5[5] = {"No", "Non", "Nein", "No", "No"};
+    if (g_title.exit_yes_button != nullptr)
+    {
+        if (Rml::Element* label = g_title.exit_yes_button->QuerySelector(".ff-prompt-button-label"))
+        {
+            label->SetInnerRML(kYes5[lang]);
+        }
+    }
+    if (g_title.exit_no_button != nullptr)
+    {
+        if (Rml::Element* label = g_title.exit_no_button->QuerySelector(".ff-prompt-button-label"))
+        {
+            label->SetInnerRML(kNo5[lang]);
+        }
+    }
 }
 
 }

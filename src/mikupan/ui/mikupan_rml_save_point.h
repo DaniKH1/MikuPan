@@ -42,6 +42,7 @@ void MikuPan_RmlSavePointActivate(void);
 void MikuPan_RmlSavePointHandleCancel(void);
 int MikuPan_RmlSavePointConsumeAction(void);
 int MikuPan_RmlSavePointGetSelection(void);
+void MikuPan_RmlSavePointApplyLanguage(int language);
 
 #ifdef __cplusplus
 }

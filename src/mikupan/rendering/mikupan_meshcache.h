@@ -60,6 +60,9 @@ typedef struct MikuPan_MeshCacheEntry
 void MikuPan_MeshCache_Init(void);
 void MikuPan_MeshCache_Shutdown(void);
 
+unsigned int MikuPan_MeshCache_GetInsertCount(void);
+void MikuPan_MeshCache_ResetInsertCounter(void);
+
 /// Returns the cached entry for (`pPUHead`, `kind`), or NULL on miss. Does not
 /// allocate. `kind` is a MikuPan_MeshCacheKind value.
 MikuPan_MeshCacheEntry *MikuPan_MeshCache_Lookup(void *pPUHead, int kind);

@@ -30,6 +30,9 @@ void DrawAll2DMes_P2();
 
 #ifdef BUILD_EU_VERSION
 void SendFontTex();
+int MikuPan_FontTexNeedsRebuild();
+int MikuPan_RequestFontReload(int base_file_no, u_int addr);
+void MikuPan_FontTexPollPendingReload();
 #endif
 
 #endif // GRAPHICS_GRAPH2D_TIM2_NEW_H

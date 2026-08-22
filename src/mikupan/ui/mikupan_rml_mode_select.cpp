@@ -1,6 +1,8 @@
 #include "mikupan/ui/mikupan_rml_mode_select.h"
 
+#include "main/glob.h"
 #include "mikupan/io/mikupan_file.h"
+#include "mikupan/mikupan_utils.h"
 
 #include "RmlUi/Core.h"
 #include "RmlUi/Core/ElementDocument.h"
@@ -477,6 +479,7 @@ bool MikuPan_RmlModeSelectInit(Rml::Context* context)
     }
 
     g_mode_select.initialized = true;
+    MikuPan_RmlModeSelectApplyLanguage(MikuPan_GetUiLanguage());
     return true;
 }
 
@@ -554,6 +557,188 @@ int MikuPan_RmlModeSelectConsumeCommand(void)
     const int command = g_mode_select.queued_command;
     g_mode_select.queued_command = MIKUPAN_RML_MODE_SELECT_COMMAND_NONE;
     return command;
+}
+
+void MikuPan_RmlModeSelectApplyLanguage(int language)
+{
+    if (!g_mode_select.initialized)
+    {
+        return;
+    }
+
+    const int lang = std::clamp(language, 0, 4);
+
+    static const char* const kFilmTitles[5][2] = {
+        {"MODE SELECT", "STORY MODE"},
+        {"SÉLECTION DU MODE", "MODE HISTOIRE"},
+        {"MODUSAUSWAHL", "GESCHICHTSMODUS"},
+        {"SELECCIÓN DE MODO", "MODO HISTORIA"},
+        {"SELEZIONE MODALITÀ", "MODALITÀ STORIA"},
+    };
+    if (g_mode_select.main_panel != nullptr)
+    {
+        if (Rml::Element* title = g_mode_select.main_panel->QuerySelector(".mode-select-film-title"))
+        {
+            title->SetInnerRML(kFilmTitles[lang][0]);
+        }
+    }
+    if (g_mode_select.story_panel != nullptr)
+    {
+        if (Rml::Element* title = g_mode_select.story_panel->QuerySelector(".mode-select-film-title"))
+        {
+            title->SetInnerRML(kFilmTitles[lang][1]);
+        }
+    }
+
+    static const char* const kMainLabels[5][5] = {
+        {"Story Mode", "Battle Mode", "Option", "Sound Test", "Exit"},
+        {"MODE HISTOIRE", "MODE COMBAT", "OPTIONS", "TEST SONORE", "QUITTER"},
+        {"GESCHICHTSMODUS", "KAMPFMODUS", "OPTIONEN", "SOUNDTEST", "BEENDEN"},
+        {"MODO HISTORIA", "MODO BATALLA", "OPCIÓN", "PRUEBA DE SONIDO", "SALIR"},
+        {"MODALITÀ STORIA", "MODALITÀ BATTAGLIA", "OPZIONE", "TEST AUDIO", "ESCI"},
+    };
+    for (int i = 0; i < 5; i++)
+    {
+        Rml::Element* button = g_mode_select.main_buttons[i];
+        Rml::Element* label = button != nullptr ? button->QuerySelector(".mode-select-main-label") : nullptr;
+        if (label != nullptr)
+        {
+            label->SetInnerRML(kMainLabels[lang][i]);
+        }
+    }
+
+    static const char* const kStoryRowLabels[5][5] = {
+        {"Chapter", "Difficulty", "Costume", "Game Start", "Exit"},
+        {"CHAPITRE", "DIFFICULTÉ", "COSTUME", "COMMENCER", "QUITTER"},
+        {"KAPITEL", "SCHWIERIGKEIT", "KOSTÜM", "SPIEL STARTEN", "BEENDEN"},
+        {"CAPÍTULO", "DIFICULTAD", "TRAJE", "EMPEZAR PARTIDA", "SALIR"},
+        {"CAPITOLO", "DIFFICOLTÀ", "COSTUME", "INIZIA PARTITA", "ESCI"},
+    };
+    static const char* const kStoryRowSelectors[5] = {
+        ".mode-select-story-label",
+        ".mode-select-story-label",
+        ".mode-select-story-label",
+        ".mode-select-story-action",
+        ".mode-select-story-action",
+    };
+    for (int i = 0; i < 5; i++)
+    {
+        Rml::Element* row = g_mode_select.story_rows[i];
+        Rml::Element* label = row != nullptr ? row->QuerySelector(kStoryRowSelectors[i]) : nullptr;
+        if (label != nullptr)
+        {
+            label->SetInnerRML(kStoryRowLabels[lang][i]);
+        }
+    }
+
+    static const char* const kChapterValues[5][6] = {
+        {"Continue", "Prologue", "Night 1", "Night 2", "Night 3", "Final Night"},
+        {"CONTINUER", "PROLOGUE", "NUIT 1", "NUIT 2", "NUIT 3", "DERNIÈRE NUIT"},
+        {"FORTSETZEN", "PROLOG", "NACHT 1", "NACHT 2", "NACHT 3", "LETZTE NACHT"},
+        {"CONTINUAR", "PRÓLOGO", "NOCHE 1", "NOCHE 2", "NOCHE 3", "ÚLTIMA NOCHE"},
+        {"CONTINUA", "PROLOGO", "NOTTE 1", "NOTTE 2", "NOTTE 3", "ULTIMA NOTTE"},
+    };
+    static const char* const kDifficultyValues[5][2] = {
+        {"Normal", "Nightmare"},
+        {"NORMAL", "CAUCHEMAR"},
+        {"NORMAL", "ALBTRAUM"},
+        {"NORMAL", "PESADILLA"},
+        {"NORMALE", "INCUBO"},
+    };
+    static const char* const kCostumeValues[5][4] = {
+        {"Normal", "Special 1", "Special 2", "Special 3"},
+        {"NORMAL", "SPÉCIAL 1", "SPÉCIAL 2", "SPÉCIAL 3"},
+        {"NORMAL", "SPEZIAL 1", "SPEZIAL 2", "SPEZIAL 3"},
+        {"NORMAL", "ESPECIAL 1", "ESPECIAL 2", "ESPECIAL 3"},
+        {"NORMALE", "SPECIALE 1", "SPECIALE 2", "SPECIALE 3"},
+    };
+    for (int value = 0; value < 6; value++)
+    {
+        if (Rml::Element* element = g_mode_select.story_value_options[0][value])
+        {
+            element->SetInnerRML(kChapterValues[lang][value]);
+        }
+    }
+    for (int value = 0; value < 2; value++)
+    {
+        if (Rml::Element* element = g_mode_select.story_value_options[1][value])
+        {
+            element->SetInnerRML(kDifficultyValues[lang][value]);
+        }
+    }
+    for (int value = 0; value < 4; value++)
+    {
+        if (Rml::Element* element = g_mode_select.story_value_options[2][value])
+        {
+            element->SetInnerRML(kCostumeValues[lang][value]);
+        }
+    }
+
+    static const char* const kMainMessages[5][5] = {
+        {"Regular game mode. Start from the chapter of your choice.",
+         "Battle against ghosts in a series of missions.",
+         "Change the game settings.",
+         "Listen to music and sound effects.",
+         "Return to the title screen."},
+        {"Mode de jeu classique. Commencez au chapitre de votre choix.",
+         "Combattez des fantômes dans une série de missions.",
+         "Modifier les paramètres du jeu.",
+         "Écouter la musique et les effets sonores.",
+         "Retourner à l'écran titre."},
+        {"Regulärer Spielmodus. Starte im Kapitel deiner Wahl.",
+         "Kämpfe gegen Geister in einer Reihe von Missionen.",
+         "Spieleinstellungen ändern.",
+         "Musik und Soundeffekte anhören.",
+         "Zum Titelbildschirm zurückkehren."},
+        {"Modo de juego normal. Empieza en el capítulo que elijas.",
+         "Combate contra fantasmas en una serie de misiones.",
+         "Cambiar los ajustes del juego.",
+         "Escuchar música y efectos de sonido.",
+         "Volver a la pantalla de título."},
+        {"Modalità di gioco normale. Inizia dal capitolo che preferisci.",
+         "Combatti contro i fantasmi in una serie di missioni.",
+         "Cambia le impostazioni di gioco.",
+         "Ascolta musica ed effetti sonori.",
+         "Torna alla schermata del titolo."},
+    };
+    static const char* const kStoryMessages[5][5] = {
+        {"Choose the chapter to start from.",
+         "Choose the game difficulty.",
+         "Choose Miku's costume.",
+         "Start the game with these settings.",
+         "Return to Mode Select."},
+        {"Choisissez le chapitre de départ.",
+         "Choisissez la difficulté du jeu.",
+         "Choisissez le costume de Miku.",
+         "Lancer le jeu avec ces paramètres.",
+         "Retour à la sélection du mode."},
+        {"Wähle das Startkapitel.",
+         "Wähle den Schwierigkeitsgrad.",
+         "Wähle Mikus Kostüm.",
+         "Spiel mit diesen Einstellungen starten.",
+         "Zurück zur Modusauswahl."},
+        {"Elige el capítulo de inicio.",
+         "Elige la dificultad del juego.",
+         "Elige el traje de Miku.",
+         "Empezar la partida con estos ajustes.",
+         "Volver a selección de modo."},
+        {"Scegli il capitolo di partenza.",
+         "Scegli la difficoltà di gioco.",
+         "Scegli il costume di Miku.",
+         "Inizia la partita con queste impostazioni.",
+         "Torna a selezione modalità."},
+    };
+    for (int i = 0; i < 5; i++)
+    {
+        if (g_mode_select.main_messages[i] != nullptr)
+        {
+            g_mode_select.main_messages[i]->SetInnerRML(kMainMessages[lang][i]);
+        }
+        if (g_mode_select.story_messages[i] != nullptr)
+        {
+            g_mode_select.story_messages[i]->SetInnerRML(kStoryMessages[lang][i]);
+        }
+    }
 }
 
 }
