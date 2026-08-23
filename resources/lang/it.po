@@ -138,8 +138,8 @@ msgstr "CARICA PARTITA"
 msgid "Back: Y / Esc"
 msgstr "Indietro: Y / Esc"
 
-msgid "Move: D-Pad / Stick    Select: A / Enter"
-msgstr "Muovi: D-Pad / Stick    Seleziona: A / Invio"
+msgid "Move: D-Pad / Stick&#160;&#160;&#160; Select: A / Enter"
+msgstr "Muovi: D-Pad / Stick&#160;&#160;&#160; Seleziona: A / Invio"
 
 msgid "OK"
 msgstr "OK"
@@ -259,8 +259,8 @@ msgstr "Punti"
 msgid "SAVE POINT"
 msgstr "PUNTO DI SALVATAGGIO"
 
-msgid "A Select    Y Exit"
-msgstr "A Seleziona    Y Esci"
+msgid "A Select&#160;&#160;&#160;&#160;Y Exit"
+msgstr "A Seleziona&#160;&#160;&#160;&#160;Y Esci"
 
 msgid "Save Game"
 msgstr "Salva partita"
@@ -938,3 +938,341 @@ msgstr "NERO"
 
 msgid "WHITE"
 msgstr "BIANCO"
+
+msgid "Fix Number Door Localization"
+msgstr "Correggi localizzazione porte numeriche"
+
+msgid "Use clockwise numerical ordering and show inset numbers over the original kanji buttons."
+msgstr "Usa un ordine numerico orario e mostra numeri sovrapposti sui pulsanti kanji originali."
+
+# --- key_cnf.cpp / mikupan_controller.cpp (legacy ImGui binding panels) ---
+msgid "Finder Mode"
+msgstr "Modalità Mirino"
+
+msgid "Normal Mode"
+msgstr "Modalità Normale"
+
+msgid "Move / Aim Up"
+msgstr "Muovi / Mira Su"
+
+msgid "Move / Aim Down"
+msgstr "Muovi / Mira Giù"
+
+msgid "Move / Aim Left"
+msgstr "Muovi / Mira Sinistra"
+
+msgid "Move / Aim Right"
+msgstr "Muovi / Mira Destra"
+
+msgid "Menu"
+msgstr "Menu"
+
+msgid "Search / Obtain"
+msgstr "Cerca / Ottieni"
+
+msgid "Finder ON"
+msgstr "Mirino ON"
+
+msgid "Special Functions"
+msgstr "Funzioni Speciali"
+
+msgid "Eye View / L2"
+msgstr "Vista Soggettiva / L2"
+
+msgid "Shutter / R1"
+msgstr "Otturatore / R1"
+
+msgid "Eye View / R2"
+msgstr "Vista Soggettiva / R2"
+
+msgid "Pause"
+msgstr "Pausa"
+
+msgid "Finder Aim Up"
+msgstr "Mira Su (Mirino)"
+
+msgid "Finder Aim Down"
+msgstr "Mira Giù (Mirino)"
+
+msgid "Finder Aim Left"
+msgstr "Mira Sinistra (Mirino)"
+
+msgid "Finder Aim Right"
+msgstr "Mira Destra (Mirino)"
+
+msgid "Turn Around"
+msgstr "Girati"
+
+msgid "Shutter"
+msgstr "Otturatore"
+
+msgid "Quick Turn"
+msgstr "Rotazione Rapida"
+
+msgid "Finder OFF"
+msgstr "Mirino OFF"
+
+msgid "Finder Control / L2"
+msgstr "Controllo Mirino / L2"
+
+msgid "Finder Control / R2"
+msgstr "Controllo Mirino / R2"
+
+msgid "L1"
+msgstr "L1"
+
+msgid "L2"
+msgstr "L2"
+
+msgid "R1"
+msgstr "R1"
+
+msgid "R2"
+msgstr "R2"
+
+msgid "L3"
+msgstr "L3"
+
+msgid "R3"
+msgstr "R3"
+
+msgid "DPad Up"
+msgstr "Croce Su"
+
+msgid "DPad Down"
+msgstr "Croce Giù"
+
+msgid "DPad Left"
+msgstr "Croce Sinistra"
+
+msgid "DPad Right"
+msgstr "Croce Destra"
+
+msgid "Cross"
+msgstr "Croce"
+
+msgid "Circle"
+msgstr "Cerchio"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "R3 (Right Stick)"
+msgstr "R3 (Levetta destra)"
+
+msgid "L3 (Left Stick)"
+msgstr "L3 (Levetta sinistra)"
+
+# --- mikupan_controller.cpp (Controller Mapping window, extended) ---
+msgid "Binding"
+msgstr "Associazione"
+
+msgid "Key"
+msgstr "Tasto"
+
+msgid "Stick"
+msgstr "Levetta"
+
+msgid "Axis"
+msgstr "Asse"
+
+msgid "Invert"
+msgstr "Inverti"
+
+msgid "Negative"
+msgstr "Negativo"
+
+msgid "Positive"
+msgstr "Positivo"
+
+msgid "Target"
+msgstr "Obiettivo"
+
+msgid "Default"
+msgstr "Predefinito"
+
+msgid "DPad"
+msgstr "Croce"
+
+msgid "Live preview"
+msgstr "Anteprima dal vivo"
+
+msgid "Controller Mapping"
+msgstr "Mappatura del controller"
+
+msgid "Connected"
+msgstr "Connesso"
+
+msgid "Gamepad"
+msgstr "Controller"
+
+msgid "Movement & Aim"
+msgstr "Movimento e Mira"
+
+msgid "Action Maps"
+msgstr "Mappe delle Azioni"
+
+msgid "<not connected>"
+msgstr "<non connesso>"
+
+msgid "Auto (first available controller)"
+msgstr "Auto (primo controller disponibile)"
+
+msgid "Input device"
+msgstr "Dispositivo di input"
+
+msgid "<unknown controller>"
+msgstr "<controller sconosciuto>"
+
+msgid "Keyboard & Mouse"
+msgstr "Tastiera e Mouse"
+
+msgid "Guide"
+msgstr "Guide"
+
+msgid "Touchpad"
+msgstr "Touchpad"
+
+msgid "Misc 1"
+msgstr "Varie 1"
+
+msgid "Misc 2"
+msgstr "Varie 2"
+
+msgid "Misc 3"
+msgstr "Varie 3"
+
+msgid "Misc 4"
+msgstr "Varie 4"
+
+msgid "Misc 5"
+msgstr "Varie 5"
+
+msgid "Misc 6"
+msgstr "Varie 6"
+
+msgid "Left Paddle 1"
+msgstr "Paddle sinistro 1"
+
+msgid "Left Paddle 2"
+msgstr "Paddle sinistro 2"
+
+msgid "Right Paddle 1"
+msgstr "Paddle destro 1"
+
+msgid "Right Paddle 2"
+msgstr "Paddle destro 2"
+
+msgid "Select / Back"
+msgstr "Select / Back"
+
+msgid "Left Stick (L3)"
+msgstr "Levetta sinistra (L3)"
+
+msgid "Right Stick (R3)"
+msgstr "Levetta destra (R3)"
+
+msgid "Y / Triangle"
+msgstr "Y / Triangle"
+
+msgid "A / Cross"
+msgstr "A / Cross"
+
+msgid "X / Square"
+msgstr "X / Square"
+
+msgid "B / Circle"
+msgstr "B / Circle"
+
+msgid "Unknown Button"
+msgstr "Pulsante sconosciuto"
+
+msgid "No controller connected."
+msgstr "Nessun controller connesso."
+
+msgid "No controller connected. Connect one to remap gamepad bindings."
+msgstr "Nessun controller connesso. Collegane uno per riassegnare i comandi."
+
+msgid "Click a binding, then press a button on your controller. 'x' clears it."
+msgstr "Clicca su un'assegnazione, poi premi un pulsante sul tuo controller. 'x' la cancella."
+
+msgid "Always active alongside the controller. Click a binding, then press a key. 'x' clears it."
+msgstr "Sempre attivo insieme al controller. Clicca su un'assegnazione, poi premi un tasto. 'x' la cancella."
+
+msgid "Click an axis, then move a stick on your controller. 'x' clears it."
+msgstr "Clicca su un asse, poi muovi una levetta del tuo controller. 'x' lo cancella."
+
+msgid "No controller connected. Connect one to remap stick axes."
+msgstr "Nessun controller connesso. Collegane uno per riassegnare gli assi delle levette."
+
+msgid "Always active alongside the controller. Each axis is driven to its extremes by a negative and a positive key. Click a key to rebind it, 'x' clears it."
+msgstr "Sempre attivo insieme al controller. Ogni asse viene portato ai suoi estremi con un tasto negativo e uno positivo. Clicca su un tasto per riassegnarlo, 'x' lo cancella."
+
+msgid "Enable custom action profile"
+msgstr "Attiva profilo azione personalizzato"
+
+msgid "Normal movement"
+msgstr "Movimento normale"
+
+msgid "Reverse finder vertical aim"
+msgstr "Inverti mira verticale del mirino"
+
+msgid "Swap finder sticks"
+msgstr "Scambia levette del mirino"
+
+msgid "On (default): left stick / WASD move, right stick / mouse aim. Off: classic (left stick aims, right stick moves)."
+msgstr "Attivo (predefinito): la levetta sinistra / WASD muove, la levetta destra / mouse mira. Disattivo: classico (la levetta sinistra mira, la destra muove)."
+
+msgid "D-Pad quick film swap"
+msgstr "Cambio rapido pellicola (croce)"
+
+msgid "Use D-Pad Up / Down in finder mode to switch film.
+D-Pad finder aim is disabled while enabled."
+msgstr "Usa D-Pad Su/Giù in modalità mirino per cambiare pellicola.
+La mira con D-Pad nel mirino è disattivata quando è attivo."
+
+msgid "Mirror Stone HUD icon"
+msgstr "Icona HUD pietra specchio"
+
+msgid "Shows a small Mirror Stone box next to the filament. It stays visible even when you do not have one."
+msgstr "Mostra una piccola icona di pietra specchio accanto al filamento. Rimane visibile anche se non ne possiedi una."
+
+msgid "Reset custom profile"
+msgstr "Ripristina profilo personalizzato"
+
+msgid "(keeps the custom profile enabled state)"
+msgstr "(mantiene lo stato di attivazione del profilo personalizzato)"
+
+msgid "Finder Mouse Look"
+msgstr "Mira con mouse del mirino"
+
+msgid "Aim the first-person finder with the mouse. Always active (independent of the custom profile above)."
+msgstr "Mira con il mirino in prima persona usando il mouse. Sempre attivo (indipendentemente dal profilo personalizzato sopra)."
+
+msgid "Enable finder mouse look"
+msgstr "Attiva mira con mouse del mirino"
+
+msgid "Mouse sensitivity"
+msgstr "Sensibilità del mouse"
+
+msgid "Vertical aim follows the \"Reverse finder vertical aim\" option above."
+msgstr "La mira verticale segue l'opzione \"Inverti mira verticale del mirino\" sopra."
+
+msgid "Advanced: remap which in-game action each button triggers, separately for normal and finder mode."
+msgstr "Avanzato: riassegna quale azione di gioco attiva ciascun pulsante, separatamente per la modalità normale e mirino."
+
+msgid "Normal Mode Actions"
+msgstr "Azioni della Modalità Normale"
+
+msgid "Finder Mode Actions"
+msgstr "Azioni della Modalità Mirino"
+
+msgid "Reset all input settings"
+msgstr "Ripristina tutte le impostazioni di input"
+
+msgid "Keyboard/mouse and controller are always active together; this selects which bindings to edit below."
+msgstr "Tastiera/mouse e controller sono sempre attivi insieme; questo seleziona quali assegnazioni modificare qui sotto."
+
+msgid "Press input... (Esc)"
+msgstr "Premi un input... (Esc)"
+

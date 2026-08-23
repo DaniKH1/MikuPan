@@ -6420,6 +6420,8 @@ void MikuPan_RmlOptionsApplyLanguage(int language)
     static const char* const kSubsectionTitleGameplay5 = "Gameplay";
     static const char* const kSettingTitleFlashlightStyle5 = "Flashlight Style";
     static const char* const kSettingDescFlashlightStyle5 = "Choose the original PS2 light, the simpler Xbox light, or disable it.";
+    static const char* const kSettingTitleNumberDoorFixLocalization5 = "Fix Number Door Localization";
+    static const char* const kSettingDescNumberDoorFixLocalization5 = "Use clockwise numerical ordering and show inset numbers over the original kanji buttons.";
     static const char* const kSettingTitleKeepFinderRaised5 = "Keep Finder Raised";
     static const char* const kSettingDescKeepFinderRaised5 = "Do not lower the Camera Obscura when an apparition event begins.";
     static const char* const kSettingTitleMinimap5 = "Mini Map";
@@ -6519,6 +6521,8 @@ void MikuPan_RmlOptionsApplyLanguage(int language)
         {"subsection-title-gameplay", kSubsectionTitleGameplay5},
         {"setting-title-flashlight-style", kSettingTitleFlashlightStyle5},
         {"setting-desc-flashlight-style", kSettingDescFlashlightStyle5},
+        {"setting-title-number-door-fix-localization", kSettingTitleNumberDoorFixLocalization5},
+        {"setting-desc-number-door-fix-localization", kSettingDescNumberDoorFixLocalization5},
         {"setting-title-keep-finder-raised", kSettingTitleKeepFinderRaised5},
         {"setting-desc-keep-finder-raised", kSettingDescKeepFinderRaised5},
         {"setting-title-minimap", kSettingTitleMinimap5},
