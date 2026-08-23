@@ -2,6 +2,7 @@
 #include "SDL3/SDL_scancode.h"
 #include "mikupan/mikupan_config.h"
 #include "mikupan/debug/mikupan_logging_c.h"
+#include "mikupan/mikupan_i18n.h"
 #include "mikupan/mikupan_utils.h"
 #include "mikupan/gameplay/mikupan_item_icon_hud.h"
 #include "mikupan/rendering/mikupan_renderer.h"
@@ -105,13 +106,13 @@ static const char *mikupan_controller_labels[MIKUPAN_CONTROLLER_LOGICAL_COUNT] =
     "L1 / LB",
 };
 
-static const char *const mikupan_special_action_labels5[MIKUPAN_SPECIAL_ACTION_COUNT][5] = {
-    {"Raise Camera", "LEVER LA CAMÉRA", "KAMERA ANHEBEN", "LEVANTAR CÁMARA", "ALZA FOTOCAMERA"},
-    {"Take Photo", "PRENDRE UNE PHOTO", "FOTO AUFNEHMEN", "TOMAR FOTO", "SCATTA FOTO"},
-    {"Previous Film", "PELLICULE PRÉCÉDENTE", "VORHERIGER FILM", "PELÍCULA ANTERIOR", "PELLICOLA PRECEDENTE"},
-    {"Next Film", "PELLICULE SUIVANTE", "NÄCHSTER FILM", "PELÍCULA SIGUIENTE", "PELLICOLA SUCCESSIVA"},
-    {"Special Ability", "CAPACITÉ SPÉCIALE", "SPEZIALFÄHIGKEIT", "HABILIDAD ESPECIAL", "ABILITÀ SPECIALE"},
-    {"Run", "COURIR", "RENNEN", "CORRER", "CORRI"},
+static const char *mikupan_special_action_labels[MIKUPAN_SPECIAL_ACTION_COUNT] = {
+    "Raise Camera",
+    "Take Photo",
+    "Previous Film",
+    "Next Film",
+    "Special Ability",
+    "Run",
 };
 
 static const MikuPan_ControllerBindings mikupan_controller_map_defaults[MIKUPAN_CONTROLLER_LOGICAL_COUNT] = {
@@ -1627,62 +1628,24 @@ static const char *MikuPan_GamepadButtonFallbackLabel(SDL_GamepadButton button)
     return (name != NULL && name[0] != '\0') ? name : "Unknown Button";
 }
 
-static const char *const kAxisLeftTriggerLabel5[5] = {
-    "L2 / LT (axis)", "L2 / LT (axe)", "L2 / LT (Achse)", "L2 / LT (eje)", "L2 / LT (asse)",
-};
-static const char *const kAxisRightTriggerLabel5[5] = {
-    "R2 / RT (axis)", "R2 / RT (axe)", "R2 / RT (Achse)", "R2 / RT (eje)", "R2 / RT (asse)",
-};
-static const char *const kLeftStickXLabel5[5] = {
-    "Left Stick X", "Stick gauche X", "Linker Stick X", "Stick izquierdo X", "Levetta sinistra X",
-};
-static const char *const kLeftStickYLabel5[5] = {
-    "Left Stick Y", "Stick gauche Y", "Linker Stick Y", "Stick izquierdo Y", "Levetta sinistra Y",
-};
-static const char *const kRightStickXLabel5[5] = {
-    "Right Stick X", "Stick droit X", "Rechter Stick X", "Stick derecho X", "Levetta destra X",
-};
-static const char *const kRightStickYLabel5[5] = {
-    "Right Stick Y", "Stick droit Y", "Rechter Stick Y", "Stick derecho Y", "Levetta destra Y",
-};
-static const char *const kUnknownAxisLabel5[5] = {
-    "Unknown Axis", "Axe inconnu", "Unbekannte Achse", "Eje desconocido", "Asse sconosciuto",
-};
-static const char *const kUnmappedLabel5[5] = {
-    "<unmapped>", "<non attribué>", "<nicht zugewiesen>", "<sin asignar>", "<non assegnato>",
-};
-static const char *const kUnknownLabel5[5] = {
-    "<unknown>", "<inconnu>", "<unbekannt>", "<desconocido>", "<sconosciuto>",
-};
-static const char *const kLeftMouseLabel5[5] = {
-    "Left Mouse", "Souris gauche", "Linke Maustaste", "Ratón izquierdo", "Mouse sinistro",
-};
-static const char *const kMiddleMouseLabel5[5] = {
-    "Middle Mouse", "Souris centrale", "Mittlere Maustaste", "Ratón central", "Mouse centrale",
-};
-static const char *const kRightMouseLabel5[5] = {
-    "Right Mouse", "Souris droite", "Rechte Maustaste", "Ratón derecho", "Mouse destro",
-};
-static const char *const kMouse4Label5[5] = {
-    "Mouse 4", "Souris 4", "Maus 4", "Ratón 4", "Mouse 4",
-};
-static const char *const kMouse5Label5[5] = {
-    "Mouse 5", "Souris 5", "Maus 5", "Ratón 5", "Mouse 5",
-};
-static const char *const kUnknownMouseButtonLabel5[5] = {
-    "<unknown mouse button>", "<bouton de souris inconnu>", "<unbekannte Maustaste>",
-    "<botón de ratón desconocido>", "<pulsante del mouse sconosciuto>",
-};
-static const char *const kWheelUpLabel5[5] = {
-    "Wheel Up", "Molette haut", "Rad hoch", "Rueda arriba", "Rotellina su",
-};
-static const char *const kWheelDownLabel5[5] = {
-    "Wheel Down", "Molette bas", "Rad runter", "Rueda abajo", "Rotellina giù",
-};
-static const char *const kUnknownActionLabel5[5] = {
-    "<unknown action>", "<action inconnue>", "<unbekannte Aktion>", "<acción desconocida>",
-    "<azione sconosciuta>",
-};
+static const char *const kAxisLeftTriggerLabel5 = "L2 / LT (axis)";
+static const char *const kAxisRightTriggerLabel5 = "R2 / RT (axis)";
+static const char *const kLeftStickXLabel5 = "Left Stick X";
+static const char *const kLeftStickYLabel5 = "Left Stick Y";
+static const char *const kRightStickXLabel5 = "Right Stick X";
+static const char *const kRightStickYLabel5 = "Right Stick Y";
+static const char *const kUnknownAxisLabel5 = "Unknown Axis";
+static const char *const kUnmappedLabel5 = "<unmapped>";
+static const char *const kUnknownLabel5 = "<unknown>";
+static const char *const kLeftMouseLabel5 = "Left Mouse";
+static const char *const kMiddleMouseLabel5 = "Middle Mouse";
+static const char *const kRightMouseLabel5 = "Right Mouse";
+static const char *const kMouse4Label5 = "Mouse 4";
+static const char *const kMouse5Label5 = "Mouse 5";
+static const char *const kUnknownMouseButtonLabel5 = "<unknown mouse button>";
+static const char *const kWheelUpLabel5 = "Wheel Up";
+static const char *const kWheelDownLabel5 = "Wheel Down";
+static const char *const kUnknownActionLabel5 = "<unknown action>";
 
 const char *MikuPan_ControllerBindingLabel(MikuPan_ControllerBindings binding)
 {
@@ -1718,39 +1681,39 @@ const char *MikuPan_ControllerBindingLabel(MikuPan_ControllerBindings binding)
         switch (axis)
         {
             case SDL_GAMEPAD_AXIS_LEFT_TRIGGER:
-                return kAxisLeftTriggerLabel5[MikuPan_GetUiLanguage()];
+                return MikuPan_Translate(kAxisLeftTriggerLabel5);
             case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER:
-                return kAxisRightTriggerLabel5[MikuPan_GetUiLanguage()];
+                return MikuPan_Translate(kAxisRightTriggerLabel5);
             case SDL_GAMEPAD_AXIS_LEFTX:
-                return kLeftStickXLabel5[MikuPan_GetUiLanguage()];
+                return MikuPan_Translate(kLeftStickXLabel5);
             case SDL_GAMEPAD_AXIS_LEFTY:
-                return kLeftStickYLabel5[MikuPan_GetUiLanguage()];
+                return MikuPan_Translate(kLeftStickYLabel5);
             case SDL_GAMEPAD_AXIS_RIGHTX:
-                return kRightStickXLabel5[MikuPan_GetUiLanguage()];
+                return MikuPan_Translate(kRightStickXLabel5);
             case SDL_GAMEPAD_AXIS_RIGHTY:
-                return kRightStickYLabel5[MikuPan_GetUiLanguage()];
+                return MikuPan_Translate(kRightStickYLabel5);
             default:
                 break;
         }
 
         const char *name = SDL_GetGamepadStringForAxis(axis);
-        return (name != NULL && name[0] != '\0') ? name : kUnknownAxisLabel5[MikuPan_GetUiLanguage()];
+        return (name != NULL && name[0] != '\0') ? name : MikuPan_Translate(kUnknownAxisLabel5);
     }
 
-    return kUnmappedLabel5[MikuPan_GetUiLanguage()];
+    return MikuPan_Translate(kUnmappedLabel5);
 }
 
 const char *MikuPan_ControllerScanCodeLabel(int scancode)
 {
     if (scancode <= 0 || scancode >= SDL_SCANCODE_COUNT)
     {
-        return kUnmappedLabel5[MikuPan_GetUiLanguage()];
+        return MikuPan_Translate(kUnmappedLabel5);
     }
 
     const char *name = SDL_GetScancodeName((SDL_Scancode) scancode);
     if (name == NULL || name[0] == '\0')
     {
-        return kUnknownLabel5[MikuPan_GetUiLanguage()];
+        return MikuPan_Translate(kUnknownLabel5);
     }
 
     return name;
@@ -1768,49 +1731,48 @@ const char *MikuPan_InputBindingLabel(MikuPan_InputBinding binding)
         switch (binding.code)
         {
             case SDL_BUTTON_LEFT:
-                return kLeftMouseLabel5[MikuPan_GetUiLanguage()];
+                return MikuPan_Translate(kLeftMouseLabel5);
             case SDL_BUTTON_MIDDLE:
-                return kMiddleMouseLabel5[MikuPan_GetUiLanguage()];
+                return MikuPan_Translate(kMiddleMouseLabel5);
             case SDL_BUTTON_RIGHT:
-                return kRightMouseLabel5[MikuPan_GetUiLanguage()];
+                return MikuPan_Translate(kRightMouseLabel5);
             case SDL_BUTTON_X1:
-                return kMouse4Label5[MikuPan_GetUiLanguage()];
+                return MikuPan_Translate(kMouse4Label5);
             case SDL_BUTTON_X2:
-                return kMouse5Label5[MikuPan_GetUiLanguage()];
+                return MikuPan_Translate(kMouse5Label5);
             default:
-                return kUnknownMouseButtonLabel5[MikuPan_GetUiLanguage()];
+                return MikuPan_Translate(kUnknownMouseButtonLabel5);
         }
     }
 
     if (binding.kind == MIKUPAN_INPUT_BIND_MOUSE_WHEEL)
     {
-        return binding.code > 0 ? kWheelUpLabel5[MikuPan_GetUiLanguage()]
-                                : kWheelDownLabel5[MikuPan_GetUiLanguage()];
+        return binding.code > 0 ? MikuPan_Translate(kWheelUpLabel5)
+                                : MikuPan_Translate(kWheelDownLabel5);
     }
 
-    return kUnmappedLabel5[MikuPan_GetUiLanguage()];
+    return MikuPan_Translate(kUnmappedLabel5);
 }
 
 const char *MikuPan_SpecialActionLabel(int action)
 {
     if (action < 0 || action >= MIKUPAN_SPECIAL_ACTION_COUNT)
     {
-        return kUnknownActionLabel5[MikuPan_GetUiLanguage()];
+        return MikuPan_Translate(kUnknownActionLabel5);
     }
 
-    return mikupan_special_action_labels5[action][MikuPan_GetUiLanguage()];
+    return MikuPan_Translate(mikupan_special_action_labels[action]);
 }
 
 const char *MikuPan_ControllerStickAxisLabel(int sdl_axis)
 {
-    const int lang = MikuPan_GetUiLanguage();
     switch (sdl_axis)
     {
-        case SDL_GAMEPAD_AXIS_LEFTX:  return kLeftStickXLabel5[lang];
-        case SDL_GAMEPAD_AXIS_LEFTY:  return kLeftStickYLabel5[lang];
-        case SDL_GAMEPAD_AXIS_RIGHTX: return kRightStickXLabel5[lang];
-        case SDL_GAMEPAD_AXIS_RIGHTY: return kRightStickYLabel5[lang];
-        default:                      return kUnmappedLabel5[lang];
+        case SDL_GAMEPAD_AXIS_LEFTX:  return MikuPan_Translate(kLeftStickXLabel5);
+        case SDL_GAMEPAD_AXIS_LEFTY:  return MikuPan_Translate(kLeftStickYLabel5);
+        case SDL_GAMEPAD_AXIS_RIGHTX: return MikuPan_Translate(kRightStickXLabel5);
+        case SDL_GAMEPAD_AXIS_RIGHTY: return MikuPan_Translate(kRightStickYLabel5);
+        default:                      return MikuPan_Translate(kUnmappedLabel5);
     }
 }
 
