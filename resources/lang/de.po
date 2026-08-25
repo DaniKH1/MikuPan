@@ -807,6 +807,12 @@ msgstr "MINI-KARTE"
 msgid "Show the corner map while exploring."
 msgstr "Zeigt die Kartenanzeige in der Ecke während der Erkundung."
 
+msgid "Auto-hide Cursor"
+msgstr "MAUSZEIGER AUTOMATISCH AUSBLENDEN"
+
+msgid "Hide the mouse cursor after 5 seconds of inactivity."
+msgstr "Blendet den Mauszeiger nach 5 Sekunden Inaktivität aus."
+
 msgid "Quick Film Swap"
 msgstr "SCHNELLER FILMWECHSEL"
 

@@ -807,6 +807,12 @@ msgstr "MINIMAPA"
 msgid "Show the corner map while exploring."
 msgstr "Muestra el mapa en la esquina mientras exploras."
 
+msgid "Auto-hide Cursor"
+msgstr "OCULTAR CURSOR AUTOMÁTICAMENTE"
+
+msgid "Hide the mouse cursor after 5 seconds of inactivity."
+msgstr "Oculta el cursor del ratón tras 5 segundos de inactividad."
+
 msgid "Quick Film Swap"
 msgstr "CAMBIO RÁPIDO DE PELÍCULA"
 
