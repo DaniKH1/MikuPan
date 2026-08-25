@@ -232,6 +232,8 @@ bool TryLoadConfigurationFile(const std::filesystem::path& path)
                mikupan_configuration.title_room_background);
     ApplyValue(ini, "ui", "title_dither",
                mikupan_configuration.title_dither);
+    ApplyValue(ini, "gameplay", "text_mods_enabled",
+               mikupan_configuration.text_mods_enabled);
     ApplyValue(ini, "third_person_camera", "enabled",
                mikupan_configuration.third_person_camera.enabled);
     ApplyValue(ini, "third_person_camera", "distance",
@@ -434,6 +436,8 @@ bool TrySaveConfigurationFile(const std::filesystem::path& path)
              mikupan_configuration.title_room_background);
     SetValue(ini, "ui", "title_dither",
              mikupan_configuration.title_dither);
+    SetValue(ini, "gameplay", "text_mods_enabled",
+             mikupan_configuration.text_mods_enabled);
     SetValue(ini, "third_person_camera", "enabled",
              mikupan_configuration.third_person_camera.enabled);
     SetValue(ini, "third_person_camera", "distance",

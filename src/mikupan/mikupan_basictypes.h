@@ -247,6 +247,7 @@ typedef struct
     int keep_finder_raised_for_apparitions;
     int title_room_background;
     int title_dither;
+    int text_mods_enabled;
     MikuPan_ConfigThirdPersonCamera third_person_camera;
     MikuPan_ConfigFirstPersonCamera first_person_camera;
     MikuPan_ConfigInput input;

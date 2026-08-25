@@ -71,6 +71,7 @@ MikuPan_Config mikupan_configuration = {
     0,
     1,
     1,
+    0,
     {
         0,
         900.0f,
@@ -366,4 +367,6 @@ void MikuPan_ConfigurationValidate(void)
         mikupan_configuration.title_room_background ? 1 : 0;
     mikupan_configuration.title_dither =
         mikupan_configuration.title_dither ? 1 : 0;
+    mikupan_configuration.text_mods_enabled =
+        mikupan_configuration.text_mods_enabled ? 1 : 0;
 }
