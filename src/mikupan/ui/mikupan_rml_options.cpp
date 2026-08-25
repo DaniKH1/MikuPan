@@ -292,6 +292,7 @@ struct MikuPanRmlOptionsState
     Rml::Element* gpu_restart_note = nullptr;
     Rml::ElementFormControlInput* crt_enabled_input = nullptr;
     Rml::ElementFormControlInput* minimap_enabled_input = nullptr;
+    Rml::ElementFormControlInput* cursor_auto_hide_input = nullptr;
     Rml::ElementFormControlInput* keep_finder_raised_input = nullptr;
     Rml::ElementFormControlInput* number_door_fix_localization_input = nullptr;
     Rml::ElementFormControlInput* finder_dpad_film_swap_input = nullptr;
@@ -4896,6 +4897,7 @@ bool FocusedControlWantsSpaceConfirm(void)
     if (focus == g_rml.vsync_input
         || focus == g_rml.crt_enabled_input
         || focus == g_rml.minimap_enabled_input
+        || focus == g_rml.cursor_auto_hide_input
         || focus == g_rml.keep_finder_raised_input
         || focus == g_rml.number_door_fix_localization_input
         || focus == g_rml.finder_dpad_film_swap_input
@@ -5423,6 +5425,8 @@ void SyncRmlSettingsValues(void)
     SetCheckbox(g_rml.crt_enabled_input, crt != nullptr && crt->enabled);
     SetCheckbox(g_rml.minimap_enabled_input,
                 mikupan_configuration.minimap_enabled);
+    SetCheckbox(g_rml.cursor_auto_hide_input,
+                mikupan_configuration.cursor_auto_hide_enabled);
     SetCheckbox(g_rml.keep_finder_raised_input,
                 MikuPan_KeepFinderRaisedForApparitionsEnabled());
     SetCheckbox(g_rml.number_door_fix_localization_input,
@@ -5815,6 +5819,16 @@ bool LoadOptionsDocument(void)
                     [](Rml::ElementFormControlInput* input) {
                         MarkSettingsDirty();
                         mikupan_configuration.minimap_enabled =
+                            IsCheckboxChecked(input) ? 1 : 0;
+                    }));
+
+    g_rml.cursor_auto_hide_input = GetInput("cursor-auto-hide-input");
+    AddListener(g_rml.cursor_auto_hide_input,
+                Rml::EventId::Change,
+                std::make_unique<MikuPanInputListener>(
+                    [](Rml::ElementFormControlInput* input) {
+                        MarkSettingsDirty();
+                        mikupan_configuration.cursor_auto_hide_enabled =
                             IsCheckboxChecked(input) ? 1 : 0;
                     }));
 

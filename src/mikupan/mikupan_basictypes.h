@@ -242,6 +242,7 @@ typedef struct
     float font_scale;
     int show_fps;
     int minimap_enabled;
+    int cursor_auto_hide_enabled;
     int flashlight_style;
     int number_door_fix_localization;
     int keep_finder_raised_for_apparitions;

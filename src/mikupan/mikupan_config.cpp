@@ -66,6 +66,7 @@ MikuPan_Config mikupan_configuration = {
     1.0f,
     0,
     0,
+    1,
     MIKUPAN_FLASHLIGHT_STYLE_PS2,
     0,
     0,
@@ -354,6 +355,8 @@ void MikuPan_ConfigurationValidate(void)
     mikupan_configuration.show_fps = mikupan_configuration.show_fps ? 1 : 0;
     mikupan_configuration.minimap_enabled =
         mikupan_configuration.minimap_enabled ? 1 : 0;
+    mikupan_configuration.cursor_auto_hide_enabled =
+        mikupan_configuration.cursor_auto_hide_enabled ? 1 : 0;
     if (mikupan_configuration.flashlight_style < MIKUPAN_FLASHLIGHT_STYLE_PS2
         || mikupan_configuration.flashlight_style > MIKUPAN_FLASHLIGHT_STYLE_OFF)
     {

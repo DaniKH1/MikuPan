@@ -222,6 +222,8 @@ bool TryLoadConfigurationFile(const std::filesystem::path& path)
     ApplyValue(ini, "ui", "show_fps", mikupan_configuration.show_fps);
     ApplyValue(ini, "ui", "minimap_enabled",
                mikupan_configuration.minimap_enabled);
+    ApplyValue(ini, "ui", "cursor_auto_hide_enabled",
+               mikupan_configuration.cursor_auto_hide_enabled);
     ApplyValue(ini, "gameplay", "flashlight_style",
                mikupan_configuration.flashlight_style);
     ApplyValue(ini, "gameplay", "number_door_fix_localization",
@@ -426,6 +428,8 @@ bool TrySaveConfigurationFile(const std::filesystem::path& path)
     SetValue(ini, "ui", "show_fps", mikupan_configuration.show_fps);
     SetValue(ini, "ui", "minimap_enabled",
              mikupan_configuration.minimap_enabled);
+    SetValue(ini, "ui", "cursor_auto_hide_enabled",
+             mikupan_configuration.cursor_auto_hide_enabled);
     SetValue(ini, "gameplay", "flashlight_style",
              mikupan_configuration.flashlight_style);
     SetValue(ini, "gameplay", "number_door_fix_localization",

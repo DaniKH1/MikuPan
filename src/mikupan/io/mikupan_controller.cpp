@@ -11,6 +11,7 @@
 #include "enums.h"
 #include <SDL3/SDL_keyboard.h>
 #include <SDL3/SDL_mouse.h>
+#include <SDL3/SDL_timer.h>
 
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include "cimgui.h"
@@ -299,11 +300,35 @@ int MikuPan_ControllerGetPreferredGamepadIndex(void)
     return mikupan_preferred_gamepad_index;
 }
 
+#define MIKUPAN_CURSOR_AUTO_HIDE_MS 5000
+
+static Uint64 last_mouse_activity_ticks = 0;
+
 static void MikuPan_OnMouseInputDetected(void)
 {
+    last_mouse_activity_ticks = SDL_GetTicks();
+
     if (!MikuPan_IsGameCursorVisible())
     {
         MikuPan_SetGameCursorVisible(1);
+    }
+}
+
+static void MikuPan_UpdateCursorAutoHide(void)
+{
+    if (!mikupan_configuration.cursor_auto_hide_enabled)
+    {
+        return;
+    }
+
+    if (!MikuPan_IsGameCursorVisible())
+    {
+        return;
+    }
+
+    if (SDL_GetTicks() - last_mouse_activity_ticks >= MIKUPAN_CURSOR_AUTO_HIDE_MS)
+    {
+        MikuPan_SetGameCursorVisible(0);
     }
 }
 
@@ -409,6 +434,8 @@ void MikuPan_ControllerProcessEvent(const SDL_Event *event)
 
 void MikuPan_LegacyMouseBeginFrame(void)
 {
+    MikuPan_UpdateCursorAutoHide();
+
     legacy_mouse_claimed_previous = legacy_mouse_claimed;
     legacy_mouse_claimed = 0;
     legacy_mouse_delivery_active = 0;
