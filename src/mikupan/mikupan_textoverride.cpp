@@ -985,7 +985,11 @@ int64_t MikuPan_GetTextModAddr(const char *category, int msg_no)
 {
     if (!mikupan_configuration.text_mods_enabled || category == nullptr) return 0;
 
+#ifdef BUILD_EU_VERSION
     const int lang = ClampLanguage(sys_wrk.language);
+#else
+    const int lang = 0;
+#endif
     LanguagePack &pack = GetPack(lang);
 
     const auto overrides_it = pack.overrides.find(category);
