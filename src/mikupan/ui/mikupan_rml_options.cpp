@@ -292,6 +292,7 @@ struct MikuPanRmlOptionsState
     Rml::Element* gpu_restart_note = nullptr;
     Rml::ElementFormControlInput* crt_enabled_input = nullptr;
     Rml::ElementFormControlInput* minimap_enabled_input = nullptr;
+    Rml::ElementFormControlInput* album_photo_png_export_input = nullptr;
     Rml::ElementFormControlInput* cursor_auto_hide_input = nullptr;
     Rml::ElementFormControlInput* keep_finder_raised_input = nullptr;
     Rml::ElementFormControlInput* number_door_fix_localization_input = nullptr;
@@ -4897,6 +4898,7 @@ bool FocusedControlWantsSpaceConfirm(void)
     if (focus == g_rml.vsync_input
         || focus == g_rml.crt_enabled_input
         || focus == g_rml.minimap_enabled_input
+        || focus == g_rml.album_photo_png_export_input
         || focus == g_rml.cursor_auto_hide_input
         || focus == g_rml.keep_finder_raised_input
         || focus == g_rml.number_door_fix_localization_input
@@ -5425,6 +5427,8 @@ void SyncRmlSettingsValues(void)
     SetCheckbox(g_rml.crt_enabled_input, crt != nullptr && crt->enabled);
     SetCheckbox(g_rml.minimap_enabled_input,
                 mikupan_configuration.minimap_enabled);
+    SetCheckbox(g_rml.album_photo_png_export_input,
+                mikupan_configuration.album_photo_png_export_enabled);
     SetCheckbox(g_rml.cursor_auto_hide_input,
                 mikupan_configuration.cursor_auto_hide_enabled);
     SetCheckbox(g_rml.keep_finder_raised_input,
@@ -5819,6 +5823,17 @@ bool LoadOptionsDocument(void)
                     [](Rml::ElementFormControlInput* input) {
                         MarkSettingsDirty();
                         mikupan_configuration.minimap_enabled =
+                            IsCheckboxChecked(input) ? 1 : 0;
+                    }));
+
+    g_rml.album_photo_png_export_input =
+        GetInput("album-photo-png-export-input");
+    AddListener(g_rml.album_photo_png_export_input,
+                Rml::EventId::Change,
+                std::make_unique<MikuPanInputListener>(
+                    [](Rml::ElementFormControlInput* input) {
+                        MarkSettingsDirty();
+                        mikupan_configuration.album_photo_png_export_enabled =
                             IsCheckboxChecked(input) ? 1 : 0;
                     }));
 
@@ -6440,6 +6455,8 @@ void MikuPan_RmlOptionsApplyLanguage(int language)
     static const char* const kSettingDescKeepFinderRaised5 = "Do not lower the Camera Obscura when an apparition event begins.";
     static const char* const kSettingTitleMinimap5 = "Mini Map";
     static const char* const kSettingDescMinimap5 = "Show the corner map while exploring.";
+    static const char* const kSettingTitleAlbumPhotoPngExport5 = "Save Album Photos as PNG";
+    static const char* const kSettingDescAlbumPhotoPngExport5 = "Also write album photos as PNG files next to the game.";
     static const char* const kSettingTitleQuickFilmSwap5 = "Quick Film Swap";
     static const char* const kSettingDescQuickFilmSwap5 = "Use D-Pad Up / Down in finder mode to switch film.<br />D-Pad finder aim is disabled while enabled.";
     static const char* const kSettingTitleMirrorStone5 = "Mirror Stone Indicator";
@@ -6541,6 +6558,8 @@ void MikuPan_RmlOptionsApplyLanguage(int language)
         {"setting-desc-keep-finder-raised", kSettingDescKeepFinderRaised5},
         {"setting-title-minimap", kSettingTitleMinimap5},
         {"setting-desc-minimap", kSettingDescMinimap5},
+        {"setting-title-album-photo-png-export", kSettingTitleAlbumPhotoPngExport5},
+        {"setting-desc-album-photo-png-export", kSettingDescAlbumPhotoPngExport5},
         {"setting-title-quick-film-swap", kSettingTitleQuickFilmSwap5},
         {"setting-desc-quick-film-swap", kSettingDescQuickFilmSwap5},
         {"setting-title-mirror-stone", kSettingTitleMirrorStone5},

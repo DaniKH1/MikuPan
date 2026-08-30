@@ -253,6 +253,7 @@ typedef struct
     MikuPan_ConfigFirstPersonCamera first_person_camera;
     MikuPan_ConfigInput input;
     char data_folder[512];
+    int album_photo_png_export_enabled;
 } MikuPan_Config;
 
 enum MikuPan_PipelineType

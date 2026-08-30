@@ -807,6 +807,12 @@ msgstr "MINIMAPA"
 msgid "Show the corner map while exploring."
 msgstr "Muestra el mapa en la esquina mientras exploras."
 
+msgid "Save Album Photos as PNG"
+msgstr "GUARDAR FOTOS DEL ÁLBUM COMO PNG"
+
+msgid "Also write album photos as PNG files next to the game."
+msgstr "También guarda las fotos del álbum como archivos PNG junto al juego."
+
 msgid "Auto-hide Cursor"
 msgstr "OCULTAR CURSOR AUTOMÁTICAMENTE"
 
@@ -1282,3 +1288,7 @@ msgstr "El teclado/ratón y el mando siempre están activos juntos; esto selecci
 msgid "Press input... (Esc)"
 msgstr "Pulsa una entrada... (Esc)"
 
+
+# --- outgame/title.cpp ---
+msgid "PRESS   TO LEAVE"
+msgstr "PULSA   PARA SALIR"
