@@ -225,6 +225,7 @@ typedef struct AudioState
     int channels;
     uint8_t audio_buffer[16384];
     size_t audio_queued;
+    size_t total_bytes_fed;
     int eof;
     u_int audio_revision;
 } AudioState;
@@ -556,6 +557,37 @@ static size_t audioHighWater()
     return audioBytesForMs(750);
 }
 
+/*
+ * Seconds of audio actually consumed by the output device so far, derived
+ * from bytes fed into the stream minus bytes still buffered there. Used to
+ * resync video pacing (and therefore subtitles) to the audio clock, since
+ * the two run on independent clocks (wall clock for video, audio device
+ * clock for playback) that can drift apart over a long movie.
+ */
+static double audioPlayedSeconds(void)
+{
+    if (!g_audio_state.stream || g_audio_state.rate <= 0
+        || g_audio_state.channels <= 0)
+    {
+        return -1.0;
+    }
+
+    size_t queued = audioQueuedBytes();
+    size_t fed = g_audio_state.total_bytes_fed;
+    size_t played_bytes = fed > queued ? fed - queued : 0;
+
+    size_t bytes_per_second =
+        (size_t) g_audio_state.rate * (size_t) g_audio_state.channels
+        * sizeof(int16_t);
+
+    if (bytes_per_second == 0)
+    {
+        return -1.0;
+    }
+
+    return (double) played_bytes / (double) bytes_per_second;
+}
+
 static void applyMovieAudioGain(void)
 {
     if (g_audio_state.stream == NULL)
@@ -634,6 +666,7 @@ static void feedAudio(void)
         SDL_PutAudioStreamData(g_audio_state.stream,
                                g_audio_state.audio_buffer,
                                (int)n);
+        g_audio_state.total_bytes_fed += n;
     }
     else
     {
@@ -735,6 +768,28 @@ static int stepMovPlayback(void)
         }
 
         return 0;
+    }
+
+    /*
+     * Audio plays on its own device clock, independent from the wall clock
+     * driving video pacing below. Left uncorrected the two drift apart over
+     * a long movie (and subtitles, paced off the video clock, drift with
+     * them). Resync the video clock to the audio clock whenever they
+     * disagree by more than a small threshold.
+     */
+    {
+        double audio_pos = audioPlayedSeconds();
+
+        if (audio_pos >= 0.0)
+        {
+            double drift = (now_sec() - g_movie_playback.start_time)
+                           - audio_pos;
+
+            if (drift > 0.05 || drift < -0.05)
+            {
+                g_movie_playback.start_time = now_sec() - audio_pos;
+            }
+        }
     }
 
     double t = now_sec();
